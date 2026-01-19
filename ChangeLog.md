@@ -11,3 +11,7 @@ Initial version
 ## 1.1.1
 
 * Nettoyage des anciens fichiers legacy retainedwarranty.
+
+## 1.1.2
+
+* Correction du chargement de la bibliothèque du module dans l'administration.

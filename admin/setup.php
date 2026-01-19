@@ -53,7 +53,7 @@ if (!$res) {
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formsetup.class.php';
-require_once DOL_DOCUMENT_ROOT.'/rgwarranty/lib/rgwarranty.lib.php';
+dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
 
 /**
  * @var Conf $conf
