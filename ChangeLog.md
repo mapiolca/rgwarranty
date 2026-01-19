@@ -7,3 +7,7 @@ Initial version
 ## 1.1.0
 
 * Ajout du module de gestion des retenues de garantie (cycles, cockpit, paiement, PDF et emails).
+
+## 1.1.1
+
+* Nettoyage des anciens fichiers legacy retainedwarranty.
