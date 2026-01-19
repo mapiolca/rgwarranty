@@ -1,0 +1,42 @@
+# Translation file
+
+#
+# Generic
+#
+
+# Module label 'ModuleGestionnaireRGName'
+ModuleGestionnaireRGName = GestionnaireRG
+# Module description 'ModuleGestionnaireRGDesc'
+ModuleGestionnaireRGDesc = GestionnaireRG description
+
+#
+# Admin page
+#
+GestionnaireRGSetup = GestionnaireRG setup
+Settings = Settings
+GestionnaireRGSetupPage = GestionnaireRG setup page
+NewSection=New section
+GESTIONNAIRERG_MYPARAM1 = My param 1
+GESTIONNAIRERG_MYPARAM1Tooltip = My param 1 tooltip
+GESTIONNAIRERG_MYPARAM2=My param 2
+GESTIONNAIRERG_MYPARAM2Tooltip=My param 2 tooltip
+
+
+#
+# About page
+#
+About = About
+GestionnaireRGAbout = About GestionnaireRG
+GestionnaireRGAboutPage = GestionnaireRG about page
+
+#
+# Sample page
+#
+GestionnaireRGArea = Home GestionnaireRG
+MyPageName = My page name
+
+#
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description
