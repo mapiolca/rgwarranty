@@ -2,7 +2,11 @@
 
 ## Features
 
-Description of the module...
+* Gestion des cycles de retenues de garantie (RG) basés sur les factures de situation.
+* Cockpit de synthèse avec filtres, statuts et actions rapides.
+* Fiche cycle RG avec récapitulatif, factures, timeline et actions.
+* Courrier PDF de demande de restitution et modèles d'email (demande + relance).
+* Saisie d'un paiement unique ventilé sur les factures du cycle.
 
 <!--
 ![Screenshot gestionnairerg](img/screenshot_gestionnairerg.png?raw=true "GestionnaireRG"){imgmd}
