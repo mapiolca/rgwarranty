@@ -235,29 +235,40 @@ print '<th class="right">'.$langs->trans('RGWRemainingRG').'</th>';
 print '<th></th>';
 print '</tr>';
 
-foreach ($invoices as $invoice) {
-	$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
-	$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
-	$resline = $db->query($sql);
-	$lineamount = 0;
-	$linepaid = 0;
-	if ($resline && ($line = $db->fetch_object($resline))) {
-		$lineamount = price2num($line->rg_amount_ttc, 'MT');
-		$linepaid = price2num($line->rg_paid_ttc, 'MT');
-	}
-	$lineremaining = price2num($lineamount - $linepaid, 'MT');
+	foreach ($invoices as $invoice) {
+		// EN: Build invoice status label with fallback when helper function is missing
+		// FR: Construire le libellé de statut avec repli si la fonction helper manque
+		$invoicestatuslabel = '';
+		if (function_exists('dol_print_invoice_status')) {
+			$invoicestatuslabel = dol_print_invoice_status($invoice->status, 1);
+		} else {
+			$tmpinvoice = new Facture($db);
+			$tmpinvoice->statut = $invoice->status;
+			$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
+		}
 
-	print '<tr class="oddeven">';
-	print '<td><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.dol_escape_htmltag($invoice->ref).'</a></td>';
-	print '<td>'.dol_print_date($db->jdate($invoice->datef), 'day').'</td>';
-	print '<td>'.dol_print_invoice_status($invoice->status, 1).'</td>';
-	print '<td class="right">'.price($invoice->total_ttc).'</td>';
-	print '<td class="right">'.price($lineamount).'</td>';
-	print '<td class="right">'.price($linepaid).'</td>';
-	print '<td class="right">'.price($lineremaining).'</td>';
-	print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.img_picto('', 'search').'</a></td>';
-	print '</tr>';
-}
+		$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
+		$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
+		$resline = $db->query($sql);
+		$lineamount = 0;
+		$linepaid = 0;
+		if ($resline && ($line = $db->fetch_object($resline))) {
+			$lineamount = price2num($line->rg_amount_ttc, 'MT');
+			$linepaid = price2num($line->rg_paid_ttc, 'MT');
+		}
+		$lineremaining = price2num($lineamount - $linepaid, 'MT');
+
+		print '<tr class="oddeven">';
+		print '<td><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.dol_escape_htmltag($invoice->ref).'</a></td>';
+		print '<td>'.dol_print_date($db->jdate($invoice->datef), 'day').'</td>';
+		print '<td>'.$invoicestatuslabel.'</td>';
+		print '<td class="right">'.price($invoice->total_ttc).'</td>';
+		print '<td class="right">'.price($lineamount).'</td>';
+		print '<td class="right">'.price($linepaid).'</td>';
+		print '<td class="right">'.price($lineremaining).'</td>';
+		print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.img_picto('', 'search').'</a></td>';
+		print '</tr>';
+	}
 print '</table>';
 print '</div>';
 
