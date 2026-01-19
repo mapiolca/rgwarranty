@@ -58,8 +58,8 @@ $langs->loadLangs(array('rgwarranty@rgwarranty', 'banks', 'bills'));
 $id = GETPOSTINT('id');
 $action = GETPOST('action', 'aZ09');
 
-$permissiontoread = $user->hasRight('rgwarranty', 'cycle', 'read');
-$permissiontopay = $user->hasRight('rgwarranty', 'cycle', 'pay');
+$permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'read'));
+$permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
 if (!$permissiontoread || !$permissiontopay) {
 	accessforbidden();

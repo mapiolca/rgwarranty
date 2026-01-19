@@ -56,9 +56,9 @@ require_once __DIR__.'/../lib/rgwarranty.lib.php';
 
 $langs->loadLangs(array('rgwarranty@rgwarranty', 'companies', 'projects', 'bills'));
 
-$permissiontoread = $user->hasRight('rgwarranty', 'cycle', 'read');
-$permissiontowrite = $user->hasRight('rgwarranty', 'cycle', 'write');
-$permissiontopay = $user->hasRight('rgwarranty', 'cycle', 'pay');
+$permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'read'));
+$permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
+$permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
 if (!$permissiontoread) {
 	accessforbidden();

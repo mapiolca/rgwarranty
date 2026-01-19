@@ -51,10 +51,10 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
-dol_include_once('/compta/facture/lib/facture.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/lib/facture.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-dol_include_once('/compta/facture/class/facture.class.php');
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once __DIR__.'/../class/rg_cycle.class.php';
 require_once __DIR__.'/../lib/rgwarranty.lib.php';
 
@@ -64,11 +64,18 @@ $id = GETPOSTINT('id');
 $action = GETPOST('action', 'aZ09');
 $mailcontext = GETPOST('mailcontext', 'alpha');
 
-$permissiontoread = $user->hasRight('rgwarranty', 'cycle', 'read');
-$permissiontowrite = $user->hasRight('rgwarranty', 'cycle', 'write');
-$permissiontopay = $user->hasRight('rgwarranty', 'cycle', 'pay');
+$permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'read'));
+$permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
+$permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
 if (!$permissiontoread) {
+	accessforbidden();
+}
+
+// EN: Prevent actions without rights
+// FR: Bloquer les actions sans droits
+$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend');
+if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
 	accessforbidden();
 }
 

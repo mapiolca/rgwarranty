@@ -107,6 +107,61 @@ class RGCycle extends CommonObject
 	}
 
 	/**
+	 * Fetch cycle.
+	 *
+	 * @param	int			$id		Object id
+	 * @param	string|null	$ref	Object ref
+	 * @return	int					>0 if ok
+	 */
+	public function fetch($id, $ref = null)
+	{
+		global $conf;
+
+		// EN: Build SQL to fetch cycle by id or ref
+		// FR: Construire la requête pour charger un cycle par id ou ref
+		$sql = "SELECT rowid, entity, ref, situation_cycle_ref, fk_projet, fk_soc, date_reception, date_limit, status,";
+		$sql .= " note_private, fk_user_author, fk_user_modif, datec, tms";
+		$sql .= " FROM ".$this->db->prefix()."rgw_cycle";
+		$sql .= " WHERE entity = ".((int) $conf->entity);
+		if ($id > 0) {
+			$sql .= " AND rowid = ".((int) $id);
+		} elseif (!empty($ref)) {
+			$sql .= " AND ref = '".$this->db->escape($ref)."'";
+		} else {
+			return 0;
+		}
+
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			if ($obj = $this->db->fetch_object($resql)) {
+				// EN: Populate object properties
+				// FR: Renseigner les propriétés de l'objet
+				$this->id = (int) $obj->rowid;
+				$this->rowid = (int) $obj->rowid;
+				$this->entity = (int) $obj->entity;
+				$this->ref = $obj->ref;
+				$this->situation_cycle_ref = (int) $obj->situation_cycle_ref;
+				$this->fk_projet = (int) $obj->fk_projet;
+				$this->fk_soc = (int) $obj->fk_soc;
+				$this->date_reception = $this->db->jdate($obj->date_reception);
+				$this->date_limit = $this->db->jdate($obj->date_limit);
+				$this->status = (int) $obj->status;
+				$this->note_private = $obj->note_private;
+				$this->fk_user_author = (int) $obj->fk_user_author;
+				$this->fk_user_modif = (int) $obj->fk_user_modif;
+				$this->datec = $this->db->jdate($obj->datec);
+				$this->tms = $this->db->jdate($obj->tms);
+
+				return 1;
+			}
+			return 0;
+		}
+
+		$this->error = $this->db->lasterror();
+		return -1;
+	}
+
+	/**
 	 * Fetch cycle by situation ref.
 	 *
 	 * @param	int	$situationRef	Situation cycle ref
