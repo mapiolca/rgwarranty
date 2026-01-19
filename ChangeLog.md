@@ -15,3 +15,7 @@ Initial version
 ## 1.1.2
 
 * Correction du chargement de la bibliothèque du module dans l'administration.
+
+## 1.1.3
+
+* Remplacement du FormSetup pour compatibilité Dolibarr 21.

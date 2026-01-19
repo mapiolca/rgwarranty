@@ -52,8 +52,7 @@ if (!$res) {
 }
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formsetup.class.php';
-dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 
 /**
  * @var Conf $conf
@@ -69,39 +68,28 @@ if (!$user->admin) {
 }
 
 $action = GETPOST('action', 'aZ09');
-$backtopage = GETPOST('backtopage', 'alpha');
-$modulepart = GETPOST('modulepart', 'aZ09');
 
-$formSetup = new FormSetup($db);
+$form = new Form($db);
 
-// EN: RG delay in days
-// FR: Délai RG en jours
-$item = $formSetup->newItem('RGWARRANTY_DELAY_DAYS');
-$item->nameText = $langs->trans('RGWDelayDays');
-$item->fieldAttr['type'] = 'number';
-$item->fieldAttr['min'] = '0';
+if ($action == 'save') {
+	// EN: Save module constants
+	// FR: Enregistrer les constantes du module
+	$delayDays = GETPOSTINT('RGWARRANTY_DELAY_DAYS');
+	$remindDays = GETPOSTINT('RGWARRANTY_REMIND_BEFORE_DAYS');
+	$autosend = GETPOSTINT('RGWARRANTY_AUTOSEND');
+	$pdfModel = GETPOST('RGWARRANTY_PDF_MODEL', 'alpha');
+	$emailRequest = GETPOST('RGWARRANTY_EMAILTPL_REQUEST', 'alpha');
+	$emailReminder = GETPOST('RGWARRANTY_EMAILTPL_REMINDER', 'alpha');
 
-// EN: Reminder delay before limit
-// FR: Délai de relance avant échéance
-$item = $formSetup->newItem('RGWARRANTY_REMIND_BEFORE_DAYS');
-$item->nameText = $langs->trans('RGWRemindBeforeDays');
-$item->fieldAttr['type'] = 'number';
-$item->fieldAttr['min'] = '0';
+	dolibarr_set_const($db, 'RGWARRANTY_DELAY_DAYS', $delayDays, 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, 'RGWARRANTY_REMIND_BEFORE_DAYS', $remindDays, 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, 'RGWARRANTY_AUTOSEND', $autosend, 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, 'RGWARRANTY_PDF_MODEL', $pdfModel, 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, 'RGWARRANTY_EMAILTPL_REQUEST', $emailRequest, 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, 'RGWARRANTY_EMAILTPL_REMINDER', $emailReminder, 'chaine', 0, '', $conf->entity);
 
-// EN: Autosend toggle
-// FR: Activation des relances automatiques
-$formSetup->newItem('RGWARRANTY_AUTOSEND')->setAsYesNo();
-
-// EN: Default PDF model
-// FR: Modèle PDF par défaut
-$item = $formSetup->newItem('RGWARRANTY_PDF_MODEL');
-$item->nameText = $langs->trans('RGWPdfModel');
-$item->setAsSelect(array('rgrequest' => $langs->trans('RGWRequestPdfModel')));
-
-// EN: Email template selection
-// FR: Sélection des modèles d'email
-$formSetup->newItem('RGWARRANTY_EMAILTPL_REQUEST')->setAsEmailTemplate('rgw_cycle');
-$formSetup->newItem('RGWARRANTY_EMAILTPL_REMINDER')->setAsEmailTemplate('rgw_cycle');
+	setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+}
 
 llxHeader('', $langs->trans('RGWModuleSetup'));
 
@@ -109,13 +97,53 @@ $linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_valu
 
 print load_fiche_titre($langs->trans('RGWModuleSetup'), $linkback, 'title_setup');
 
-print '<div class="fichecenter">';
-print '<div class="fichethirdleft">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="action" value="save">';
 
-print $formSetup->printForm();
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans('Parameter').'</td>';
+print '<td>'.$langs->trans('Value').'</td>';
+print '</tr>';
 
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWDelayDays').'</td>';
+print '<td><input type="number" min="0" name="RGWARRANTY_DELAY_DAYS" value="'.(int) getDolGlobalInt('RGWARRANTY_DELAY_DAYS', 365).'"></td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWRemindBeforeDays').'</td>';
+print '<td><input type="number" min="0" name="RGWARRANTY_REMIND_BEFORE_DAYS" value="'.(int) getDolGlobalInt('RGWARRANTY_REMIND_BEFORE_DAYS', 30).'"></td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWAutoSend').'</td>';
+print '<td>'.$form->selectyesno('RGWARRANTY_AUTOSEND', getDolGlobalInt('RGWARRANTY_AUTOSEND', 0), 1).'</td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWPdfModel').'</td>';
+print '<td>'.$form->selectarray('RGWARRANTY_PDF_MODEL', array('rgrequest' => $langs->trans('RGWRequestPdfModel')), getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest'), 0).'</td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWEmailTemplateRequest').'</td>';
+print '<td><input type="text" name="RGWARRANTY_EMAILTPL_REQUEST" value="'.dol_escape_htmltag(getDolGlobalString('RGWARRANTY_EMAILTPL_REQUEST', 'rgwarranty_request')).'"></td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('RGWEmailTemplateReminder').'</td>';
+print '<td><input type="text" name="RGWARRANTY_EMAILTPL_REMINDER" value="'.dol_escape_htmltag(getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder')).'"></td>';
+print '</tr>';
+
+print '</table>';
+
+print '<div class="center">';
+print '<input type="submit" class="button" value="'.$langs->trans('Save').'">';
 print '</div>';
-print '</div>';
+
+print '</form>';
 
 llxFooter();
 $db->close();
