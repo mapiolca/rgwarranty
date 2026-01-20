@@ -21,12 +21,29 @@
  *\brief		PDF model for RG request letter.
  */
 
-// EN: Load base PDF class (compat with Dolibarr 21+ path)
-// FR: Charger la classe PDF de base (compat avec chemin Dolibarr 21+)
-if (is_file(DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php';
-} else {
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
+// EN: Load base PDF class with multi-version paths
+// FR: Charger la classe PDF de base avec chemins multi-version
+$docPdfPaths = array(
+	dol_buildpath('/core/modules/doc_pdf.class.php', 0),
+	dol_buildpath('/core/modules/pdf/doc_pdf.class.php', 0),
+	dol_buildpath('/core/modules/common/doc_pdf.class.php', 0),
+);
+$docPdfLoaded = false;
+foreach ($docPdfPaths as $docPdfPath) {
+	if (!$docPdfPath || !is_file($docPdfPath)) {
+		continue;
+	}
+	require_once $docPdfPath;
+	$docPdfLoaded = true;
+	break;
+}
+if (!$docPdfLoaded && function_exists('dol_include_once')) {
+	foreach (array('/core/modules/doc_pdf.class.php', '/core/modules/pdf/doc_pdf.class.php', '/core/modules/common/doc_pdf.class.php') as $docPdfRelPath) {
+		if (dol_include_once($docPdfRelPath)) {
+			$docPdfLoaded = true;
+			break;
+		}
+	}
 }
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';

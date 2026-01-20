@@ -47,3 +47,7 @@ Initial version
 ## 1.1.10
 
 * Compatibilité du chargement de la classe PDF de base pour le modèle RG (Dolibarr 21+).
+
+## 1.1.11
+
+* Fallback supplémentaire de chargement de doc_pdf pour plusieurs chemins Dolibarr.
