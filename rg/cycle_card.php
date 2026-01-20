@@ -46,11 +46,14 @@ if (!$res) {
 	die('Include of main fails');
 }
 
+require_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
@@ -90,12 +93,26 @@ if (empty($object->id)) {
 $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formfile = new FormFile($db);
+$formactions = new FormActions($db);
+
+// EN: Initialize hooks for cycle card
+// FR: Initialiser les hooks pour la fiche cycle
+$hookmanager = new HookManager($db);
+$hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 
 $error = 0;
 
+// EN: Allow hooks to process actions
+// FR: Autoriser les hooks à traiter les actions
+$parameters = array('id' => $object->id);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);
+if ($reshook < 0) {
+	setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+}
+
 // EN: Handle actions
 // FR: Gérer les actions
-if ($action == 'reception_save' && $permissiontowrite) {
+if ($reshook == 0 && $action == 'reception_save' && $permissiontowrite) {
 	$date_reception = dol_mktime(0, 0, 0, GETPOSTINT('receptionmonth'), GETPOSTINT('receptionday'), GETPOSTINT('receptionyear'));
 	$date_limit = dol_mktime(0, 0, 0, GETPOSTINT('limitmonth'), GETPOSTINT('limitday'), GETPOSTINT('limityear'));
 	if (empty($date_reception)) {
@@ -117,7 +134,7 @@ if ($action == 'reception_save' && $permissiontowrite) {
 	$action = '';
 }
 
-if (in_array($action, array('request', 'reminder')) && $permissiontowrite) {
+if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permissiontowrite) {
 	if (empty($object->date_reception)) {
 		setEventMessages($langs->trans('RGWReceptionRequired'), null, 'errors');
 		$action = '';
@@ -145,42 +162,159 @@ $totals = rgwarranty_get_cycle_totals($db, $object->id);
 
 llxHeader('', $langs->trans('RGWCycle'));
 
-$head = array();
-print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
+$head = rgwarranty_cycle_prepare_head($object);
+print dol_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
 
 $linkback = '<a href="'.dol_buildpath('/rgwarranty/rg/index.php', 1).'">'.$langs->trans('BackToList').'</a>';
 dol_banner_tab($object, 'ref', $linkback, 1, 'ref');
 
-print '<div class="fichecenter">';
-print '<div class="fichehalfleft">';
-print '<table class="border centpercent">';
-print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
-print '<tr><td>'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
-print '<tr><td>'.$langs->trans('ThirdParty').'</td><td>';
+$showactionsavailable = false;
+
+// EN: Prepare labels for left column
+// FR: Préparer les libellés pour la colonne gauche
+$thirdpartyLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
 if (!empty($object->fk_soc)) {
 	$thirdparty = new Societe($db);
 	$thirdparty->fetch($object->fk_soc);
-	print $thirdparty->getNomUrl(1);
+	$thirdpartyLabel = $thirdparty->getNomUrl(1);
 }
-print '</td></tr>';
-print '<tr><td>'.$langs->trans('Project').'</td><td>';
+$projectLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
 if (!empty($object->fk_projet) && isModEnabled('project')) {
 	$project = new Project($db);
 	$project->fetch($object->fk_projet);
-	print $project->getNomUrl(1);
+	$projectLabel = $project->getNomUrl(1);
 }
-print '</td></tr>';
-print '<tr><td>'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
-print '<tr><td>'.$langs->trans('RGWLimitDate').'</td><td>'.dol_print_date($object->date_limit, 'day').'</td></tr>';
-print '<tr><td>'.$langs->trans('RGWTotalRG').'</td><td>'.price($totals['rg_total_ttc']).'</td></tr>';
-print '<tr><td>'.$langs->trans('RGWRemainingRG').'</td><td>'.price($totals['rg_remaining_ttc']).'</td></tr>';
-print '<tr><td>'.$langs->trans('Status').'</td><td>'.rgwarranty_get_cycle_status_badge($langs, $object->status).'</td></tr>';
+
+print '<div class="fichecenter">';
+print '<div class="fichehalfleft">';
+print '<table class="tableforfield centpercent">';
+print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('RGWLimitDate').'</td><td>'.dol_print_date($object->date_limit, 'day').'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('RGWTotalRG').'</td><td>'.price($totals['rg_total_ttc']).'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('RGWRemainingRG').'</td><td>'.price($totals['rg_remaining_ttc']).'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('Status').'</td><td>'.rgwarranty_get_cycle_status_badge($langs, $object->status).'</td></tr>';
 print '</table>';
 print '</div>';
 
 print '<div class="fichehalfright">';
+	// EN: Documents block
+	// FR: Bloc documents
+	$modulepart = 'rgwarranty';
+	$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$object->ref;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
+	$genallowed = $permissiontowrite;
+	$delallowed = $permissiontowrite;
+	$modelselected = !empty($object->model_pdf) ? $object->model_pdf : getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+	$param = '&id='.$object->id;
+
+	print '<div class="titre">'.$langs->trans('Documents').'</div>';
+
+	// EN: Show document generation form if available
+	// FR: Afficher le formulaire de génération si disponible
+	if (function_exists('builddoc_form')) {
+		$builddocParams = array(
+			'modulepart' => $modulepart,
+			'param' => $param,
+			'object' => $object,
+			'permissiontoadd' => $permissiontowrite,
+			'permissiontodel' => $permissiontowrite,
+			'modelselected' => $modelselected,
+			'filedir' => $filedir,
+			'urlsource' => $urlsource,
+			'genallowed' => $genallowed,
+			'delallowed' => $delallowed,
+			'morehtmlright' => '',
+			'moreparam' => ''
+		);
+
+		$builddocArgs = array();
+		$builddocReflect = new ReflectionFunction('builddoc_form');
+		foreach ($builddocReflect->getParameters() as $parameter) {
+			$paramName = $parameter->getName();
+			if (array_key_exists($paramName, $builddocParams)) {
+				$builddocArgs[] = $builddocParams[$paramName];
+			} elseif ($parameter->isDefaultValueAvailable()) {
+				$builddocArgs[] = $parameter->getDefaultValue();
+			} else {
+				$builddocArgs[] = null;
+			}
+		}
+		print call_user_func_array('builddoc_form', $builddocArgs);
+	}
+
+	// EN: Show generated documents list if available
+	// FR: Afficher la liste des documents générés si disponible
+	if (method_exists($formfile, 'showdocuments')) {
+		$showdocParams = array(
+			'modulepart' => $modulepart,
+			'filename' => $object->ref,
+			'ref' => $object->ref,
+			'filedir' => $filedir,
+			'urlsource' => $urlsource,
+			'genallowed' => $genallowed,
+			'delallowed' => $delallowed,
+			'modelselected' => $modelselected,
+			'allowgenifempty' => 1,
+			'permissiontoread' => $permissiontoread,
+			'param' => $param,
+			'action' => $action
+		);
+
+		$showdocArgs = array();
+		$showdocReflect = new ReflectionMethod($formfile, 'showdocuments');
+		foreach ($showdocReflect->getParameters() as $parameter) {
+			$paramName = $parameter->getName();
+			if (array_key_exists($paramName, $showdocParams)) {
+				$showdocArgs[] = $showdocParams[$paramName];
+			} elseif ($parameter->isDefaultValueAvailable()) {
+				$showdocArgs[] = $parameter->getDefaultValue();
+			} else {
+				$showdocArgs[] = null;
+			}
+		}
+		print call_user_func_array(array($formfile, 'showdocuments'), $showdocArgs);
+	}
+
+	// EN: Actions/agenda block
+	// FR: Bloc actions/agenda
+	print '<div class="titre">'.$langs->trans('Actions').'</div>';
+	if (method_exists($formactions, 'showactions')) {
+		$showactionsavailable = true;
+		$showactionParams = array(
+			'object' => $object,
+			'socid' => $object->fk_soc,
+			'backtopage' => $_SERVER['PHP_SELF'].'?id='.$object->id,
+			'action' => $action
+		);
+		$showactionArgs = array();
+		$showactionReflect = new ReflectionMethod($formactions, 'showactions');
+		foreach ($showactionReflect->getParameters() as $parameter) {
+			$paramName = $parameter->getName();
+			if (array_key_exists($paramName, $showactionParams)) {
+				$showactionArgs[] = $showactionParams[$paramName];
+			} elseif ($parameter->isDefaultValueAvailable()) {
+				$showactionArgs[] = $parameter->getDefaultValue();
+			} else {
+				$showactionArgs[] = null;
+			}
+		}
+		call_user_func_array(array($formactions, 'showactions'), $showactionArgs);
+	}
 print '</div>';
 print '</div>';
+
+// EN: Hook for extra fields and custom content
+// FR: Hook pour champs supplémentaires et contenu personnalisé
+$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);
+if ($reshook < 0) {
+	setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+} elseif (!empty($reshook)) {
+	print $hookmanager->resPrint;
+}
 
 if ($action != 'presend') {
 	print '<div class="tabsAction">';
@@ -202,7 +336,7 @@ if ($action == 'reception' && $permissiontowrite) {
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	print '<input type="hidden" name="action" value="reception_save">';
-	print '<table class="border centpercent">';
+	print '<table class="tableforfield centpercent">';
 	print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>';
 	print $form->selectDate($object->date_reception ? $object->date_reception : dol_now(), 'reception', 0, 0, 1);
 	print '</td></tr>';
@@ -210,7 +344,7 @@ if ($action == 'reception' && $permissiontowrite) {
 	if (empty($defaultlimit)) {
 		$defaultlimit = dol_time_plus_duree(dol_now(), getDolGlobalInt('RGWARRANTY_DELAY_DAYS', 365), 'd');
 	}
-	print '<tr><td>'.$langs->trans('RGWLimitDate').'</td><td>';
+	print '<tr><td class="titlefield">'.$langs->trans('RGWLimitDate').'</td><td>';
 	print $form->selectDate($defaultlimit, 'limit', 0, 0, 1);
 	print '</td></tr>';
 	print '</table>';
@@ -235,88 +369,89 @@ print '<th class="right">'.$langs->trans('RGWRemainingRG').'</th>';
 print '<th></th>';
 print '</tr>';
 
-	foreach ($invoices as $invoice) {
-		// EN: Build invoice status label with fallback when helper function is missing
-		// FR: Construire le libellé de statut avec repli si la fonction helper manque
-		$invoicestatuslabel = '';
-		if (function_exists('dol_print_invoice_status')) {
-			$invoicestatuslabel = dol_print_invoice_status($invoice->status, 1);
-		} else {
-			$tmpinvoice = new Facture($db);
-			$tmpinvoice->statut = $invoice->status;
-			$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
-		}
-		// EN: Avoid invalid dates for display
-		// FR: Éviter les dates invalides à l'affichage
-		$invoiceDate = '';
-		$invoiceDateTs = $db->jdate($invoice->datef);
-		if (!empty($invoiceDateTs)) {
-			$invoiceDate = dol_print_date($invoiceDateTs, 'day');
-		}
-
-		$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
-		$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
-		$resline = $db->query($sql);
-		$lineamount = 0;
-		$linepaid = 0;
-		if ($resline && ($line = $db->fetch_object($resline))) {
-			$lineamount = price2num($line->rg_amount_ttc, 'MT');
-			$linepaid = price2num($line->rg_paid_ttc, 'MT');
-		}
-		$lineremaining = price2num($lineamount - $linepaid, 'MT');
-
-		print '<tr class="oddeven">';
-		print '<td><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.dol_escape_htmltag($invoice->ref).'</a></td>';
-		print '<td>'.$invoiceDate.'</td>';
-		print '<td>'.$invoicestatuslabel.'</td>';
-		print '<td class="right">'.price($invoice->total_ttc).'</td>';
-		print '<td class="right">'.price($lineamount).'</td>';
-		print '<td class="right">'.price($linepaid).'</td>';
-		print '<td class="right">'.price($lineremaining).'</td>';
-		print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.img_picto('', 'search').'</a></td>';
-		print '</tr>';
+foreach ($invoices as $invoice) {
+	// EN: Build invoice status label with fallback when helper function is missing
+	// FR: Construire le libellé de statut avec repli si la fonction helper manque
+	$invoicestatuslabel = '';
+	if (function_exists('dol_print_invoice_status')) {
+		$invoicestatuslabel = dol_print_invoice_status($invoice->status, 1);
+	} else {
+		$tmpinvoice = new Facture($db);
+		$tmpinvoice->statut = $invoice->status;
+		$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
 	}
-print '</table>';
-print '</div>';
-
-// EN: Timeline events
-// FR: Timeline des événements
-print '<h3>'.$langs->trans('RGWTimeline').'</h3>';
-print '<div class="div-table-responsive">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre">';
-print '<th>'.$langs->trans('Date').'</th>';
-print '<th>'.$langs->trans('Type').'</th>';
-print '<th>'.$langs->trans('Label').'</th>';
-print '<th>'.$langs->trans('User').'</th>';
-print '</tr>';
-
-$sql = "SELECT e.rowid, e.date_event, e.event_type, e.label, u.login";
-$sql .= " FROM ".$db->prefix()."rgw_event as e";
-$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = e.fk_user";
-$sql .= " WHERE e.fk_cycle = ".((int) $object->id);
-$sql .= " AND e.entity = ".((int) $conf->entity);
-$sql .= " ORDER BY e.date_event DESC";
-$resql = $db->query($sql);
-if ($resql) {
-	while ($obj = $db->fetch_object($resql)) {
-		// EN: Avoid invalid dates for display
-		// FR: Éviter les dates invalides à l'affichage
-		$eventDate = '';
-		$eventDateTs = $db->jdate($obj->date_event);
-		if (!empty($eventDateTs)) {
-			$eventDate = dol_print_date($eventDateTs, 'dayhour');
-		}
-		print '<tr class="oddeven">';
-		print '<td>'.$eventDate.'</td>';
-		print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
-		print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
-		print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
-		print '</tr>';
+	// EN: Avoid invalid dates for display
+	// FR: Éviter les dates invalides à l'affichage
+	$invoiceDate = '';
+	if (!empty($invoice->datef)) {
+		$invoiceDate = dol_print_date($invoice->datef, 'day');
 	}
+
+	$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
+	$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
+	$resline = $db->query($sql);
+	$lineamount = 0;
+	$linepaid = 0;
+	if ($resline && ($line = $db->fetch_object($resline))) {
+		$lineamount = price2num($line->rg_amount_ttc, 'MT');
+		$linepaid = price2num($line->rg_paid_ttc, 'MT');
+	}
+	$lineremaining = price2num($lineamount - $linepaid, 'MT');
+
+	print '<tr class="oddeven">';
+	print '<td>'.$invoice->getNomUrl(1).'</td>';
+	print '<td>'.$invoiceDate.'</td>';
+	print '<td>'.$invoicestatuslabel.'</td>';
+	print '<td class="right">'.price($invoice->total_ttc).'</td>';
+	print '<td class="right">'.price($lineamount).'</td>';
+	print '<td class="right">'.price($linepaid).'</td>';
+	print '<td class="right">'.price($lineremaining).'</td>';
+	print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->id.'">'.img_picto('', 'search').'</a></td>';
+	print '</tr>';
 }
 print '</table>';
 print '</div>';
+
+// EN: Timeline events fallback when agenda is not available
+// FR: Historique en repli si l'agenda n'est pas disponible
+if (empty($showactionsavailable)) {
+	print '<h3>'.$langs->trans('RGWTimeline').'</h3>';
+	print '<div class="div-table-responsive">';
+	print '<table class="noborder centpercent">';
+	print '<tr class="liste_titre">';
+	print '<th>'.$langs->trans('Date').'</th>';
+	print '<th>'.$langs->trans('Type').'</th>';
+	print '<th>'.$langs->trans('Label').'</th>';
+	print '<th>'.$langs->trans('User').'</th>';
+	print '</tr>';
+
+	$sql = "SELECT e.rowid, e.date_event, e.event_type, e.label, u.login";
+	$sql .= " FROM ".$db->prefix()."rgw_event as e";
+	$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = e.fk_user";
+	$sql .= " WHERE e.fk_cycle = ".((int) $object->id);
+	$sql .= " AND e.entity = ".((int) $conf->entity);
+	$sql .= " ORDER BY e.date_event DESC";
+	$resql = $db->query($sql);
+	if ($resql) {
+		while ($obj = $db->fetch_object($resql)) {
+			// EN: Avoid invalid dates for display
+			// FR: Éviter les dates invalides à l'affichage
+			$eventDate = '';
+			$eventDateTs = $db->jdate($obj->date_event);
+			if (!empty($eventDateTs)) {
+				$eventDate = dol_print_date($eventDateTs, 'dayhour');
+			}
+			print '<tr class="oddeven">';
+			print '<td>'.$eventDate.'</td>';
+			print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
+			print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
+			print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
+			print '</tr>';
+		}
+	}
+	print '</table>';
+	print '</div>';
+}
 
 // EN: Presend mail form
 // FR: Formulaire d'envoi email
@@ -331,7 +466,7 @@ if ($action == 'presend') {
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
 
-print dol_get_fiche_end();
+print dol_fiche_end();
 
 llxFooter();
 $db->close();
