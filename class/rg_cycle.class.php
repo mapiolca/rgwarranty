@@ -162,6 +162,40 @@ class RGCycle extends CommonObject
 	}
 
 	/**
+	 * Update cycle.
+	 *
+	 * @param	User	$user	User making change
+	 * @return	int				>0 if ok
+	 */
+	public function update($user)
+	{
+		global $conf;
+
+		if (empty($this->id)) {
+			return -1;
+		}
+
+		// EN: Update cycle data
+		// FR: Mettre à jour les données du cycle
+		$sql = "UPDATE ".$this->db->prefix()."rgw_cycle";
+		$sql .= " SET date_reception = ".(empty($this->date_reception) ? "NULL" : "'".$this->db->idate($this->date_reception)."'");
+		$sql .= ", date_limit = ".(empty($this->date_limit) ? "NULL" : "'".$this->db->idate($this->date_limit)."'");
+		$sql .= ", status = ".((int) $this->status);
+		$sql .= ", note_private = ".(empty($this->note_private) ? "NULL" : "'".$this->db->escape($this->note_private)."'");
+		$sql .= ", fk_user_modif = ".((int) $user->id);
+		$sql .= ", tms = '".$this->db->idate(dol_now())."'";
+		$sql .= " WHERE rowid = ".((int) $this->id);
+		$sql .= " AND entity = ".((int) $conf->entity);
+
+		if ($this->db->query($sql)) {
+			return 1;
+		}
+
+		$this->error = $this->db->lasterror();
+		return -1;
+	}
+
+	/**
 	 * Fetch cycle by situation ref.
 	 *
 	 * @param	int	$situationRef	Situation cycle ref
