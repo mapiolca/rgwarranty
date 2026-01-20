@@ -84,7 +84,7 @@ foreach (array(
 
 // EN: Load dependencies with safe fallbacks
 // FR: Charger les dépendances avec fallbacks sûrs
-rgwarranty_require_once('/core/lib/pdf.lib.php', $rootPath);
+rgwarranty_require_once('/htdocs/core/lib/pdf.lib.php', $rootPath);
 rgwarranty_require_once('/core/lib/company.lib.php', $rootPath);
 rgwarranty_require_once('/core/lib/date.lib.php', $rootPath);
 rgwarranty_require_once('/core/lib/functions2.lib.php', $rootPath);

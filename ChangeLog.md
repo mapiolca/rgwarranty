@@ -75,3 +75,7 @@ Initial version
 ## 1.1.17
 
 * Détection robuste de la racine htdocs et ajouts de chemins PDF supplémentaires.
+
+## 1.1.18
+
+* Chargement de pdf.lib.php via le chemin htdocs/core/lib.
