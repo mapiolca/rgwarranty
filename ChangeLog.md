@@ -59,3 +59,7 @@ Initial version
 ## 1.1.13
 
 * Fallback DOL_DOCUMENT_ROOT pour charger doc_pdf et garantir ModelePDF.
+
+## 1.1.14
+
+* Fallback relatif additionnel pour charger ModelePDF si DOL_DOCUMENT_ROOT est indisponible.

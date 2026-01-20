@@ -59,6 +59,25 @@ if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.cl
 	require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
 	$docPdfLoaded = true;
 }
+// EN: Fallback by relative path when DOL_DOCUMENT_ROOT is not usable
+// FR: Fallback par chemin relatif si DOL_DOCUMENT_ROOT n'est pas exploitable
+if (!class_exists('ModelePDF')) {
+	$rootPath = dirname(__FILE__, 6);
+	$docPdfFallbackPaths = array(
+		$rootPath.'/core/modules/doc_pdf.class.php',
+		$rootPath.'/core/modules/pdf/doc_pdf.class.php',
+		$rootPath.'/core/modules/common/doc_pdf.class.php',
+	);
+	foreach ($docPdfFallbackPaths as $docPdfFallbackPath) {
+		if (!is_file($docPdfFallbackPath)) {
+			continue;
+		}
+		require_once $docPdfFallbackPath;
+		if (class_exists('ModelePDF')) {
+			break;
+		}
+	}
+}
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
