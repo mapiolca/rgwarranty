@@ -21,78 +21,31 @@
  *\brief		PDF model for RG request letter.
  */
 
-// EN: Resolve document root even if DOL_DOCUMENT_ROOT is misconfigured
-// FR: Résoudre la racine document même si DOL_DOCUMENT_ROOT est mal configuré
-$rootPath = (defined('DOL_DOCUMENT_ROOT') && is_dir(DOL_DOCUMENT_ROOT.'/core')) ? DOL_DOCUMENT_ROOT : '';
-if (empty($rootPath)) {
-	$rootPath = dirname(__FILE__);
-	while (!empty($rootPath) && $rootPath !== dirname($rootPath)) {
-		if (is_dir($rootPath.'/core')) {
-			break;
-		}
-		$rootPath = dirname($rootPath);
-	}
-}
+// EN: Load core PDF base class and helpers (Dolibarr v21+)
+// FR: Charger la classe de base PDF et helpers core (Dolibarr v21+)
+dol_include_once('/core/modules/modules_pdf.php');
+dol_include_once('/core/lib/pdf.lib.php');
+dol_include_once('/core/lib/company.lib.php');
+dol_include_once('/core/lib/date.lib.php');
+dol_include_once('/core/lib/functions2.lib.php');
+dol_include_once('/core/lib/files.lib.php');
+dol_include_once('/societe/class/societe.class.php');
+dol_include_once('/projet/class/project.class.php');
+dol_include_once('/compta/facture/class/facture.class.php');
+require_once dol_buildpath('/rgwarranty/lib/rgwarranty.lib.php', 0);
 
-// EN: Include helper with multiple fallbacks
-// FR: Helper d'inclusion avec plusieurs fallbacks
-if (!function_exists('rgwarranty_require_once')) {
-	function rgwarranty_require_once($relativePath, $rootPath)
+// EN: Track if base PDF class is available
+// FR: Suivre la disponibilité de la classe PDF de base
+$rgwarrantyPdfBaseLoaded = class_exists('ModelePDF');
+
+// EN: Fallback to avoid fatal if base class is missing
+// FR: Fallback pour éviter un fatal si la classe de base manque
+if (!$rgwarrantyPdfBaseLoaded) {
+	class ModelePDF
 	{
-		// EN: Try dol_buildpath if available
-		// FR: Essayer dol_buildpath si disponible
-		if (function_exists('dol_buildpath')) {
-			$absPath = dol_buildpath($relativePath, 0);
-			if ($absPath && is_file($absPath)) {
-				require_once $absPath;
-				return true;
-			}
-		}
-		// EN: Try dol_include_once with relative path
-		// FR: Essayer dol_include_once avec chemin relatif
-		if (function_exists('dol_include_once') && dol_include_once($relativePath)) {
-			return true;
-		}
-		// EN: Try resolved root path
-		// FR: Essayer la racine résolue
-		$absFallback = $rootPath.$relativePath;
-		if (is_file($absFallback)) {
-			require_once $absFallback;
-			return true;
-		}
-		return false;
+		public $error = '';
 	}
 }
-
-// EN: Ensure core helper functions are available
-// FR: S'assurer que les fonctions core sont disponibles
-rgwarranty_require_once('/core/lib/functions.lib.php', $rootPath);
-
-// EN: Load base PDF class with multi-version paths
-// FR: Charger la classe PDF de base avec chemins multi-version
-foreach (array(
-	'/core/modules/doc_pdf.class.php',
-	'/core/modules/pdf/doc_pdf.class.php',
-	'/core/modules/common/doc_pdf.class.php',
-	'/core/modules/pdf/modules_pdf.php',
-	'/core/modules/modules_pdf.php',
-) as $docPdfRelPath) {
-	if (rgwarranty_require_once($docPdfRelPath, $rootPath)) {
-		break;
-	}
-}
-
-// EN: Load dependencies with safe fallbacks
-// FR: Charger les dépendances avec fallbacks sûrs
-rgwarranty_require_once('/htdocs/core/lib/pdf.lib.php', $rootPath);
-rgwarranty_require_once('/core/lib/company.lib.php', $rootPath);
-rgwarranty_require_once('/core/lib/date.lib.php', $rootPath);
-rgwarranty_require_once('/core/lib/functions2.lib.php', $rootPath);
-rgwarranty_require_once('/societe/class/societe.class.php', $rootPath);
-rgwarranty_require_once('/projet/class/project.class.php', $rootPath);
-rgwarranty_require_once('/compta/facture/class/facture.class.php', $rootPath);
-rgwarranty_require_once('/core/lib/files.lib.php', $rootPath);
-rgwarranty_require_once('/rgwarranty/lib/rgwarranty.lib.php', $rootPath);
 
 /**
  * PDF model class
@@ -149,6 +102,14 @@ class pdf_rgrequest extends ModelePDF
 	{
 		global $conf, $user, $mysoc;
 
+		// EN: Stop if base PDF class is unavailable
+		// FR: Stopper si la classe PDF de base est indisponible
+		global $rgwarrantyPdfBaseLoaded;
+		if (empty($rgwarrantyPdfBaseLoaded)) {
+			$this->error = $outputlangs->trans('RGWMissingPdfBaseClass');
+			return 0;
+		}
+
 		// EN: Load translations for PDF
 		// FR: Charger les traductions pour le PDF
 		$outputlangs->loadLangs(array('main', 'companies', 'projects', 'bills', 'rgwarranty@rgwarranty'));
@@ -190,7 +151,13 @@ class pdf_rgrequest extends ModelePDF
 		$pdf->Cell(0, 6, $outputlangs->transnoentities('RGWRequestLetterTitle'), 0, 1, 'L');
 
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 10);
-		$pdf->MultiCell(0, 5, $outputlangs->transnoentities('RGWRequestLetterIntro', dol_print_date($object->date_reception, 'day', $outputlangs)), 0, 'L');
+		// EN: Handle missing reception date
+		// FR: Gérer l'absence de date de réception
+		$receptionDateLabel = $outputlangs->trans('RGWNoReceptionDate');
+		if (!empty($object->date_reception)) {
+			$receptionDateLabel = dol_print_date($object->date_reception, 'day', $outputlangs);
+		}
+		$pdf->MultiCell(0, 5, $outputlangs->transnoentities('RGWRequestLetterIntro', $receptionDateLabel), 0, 'L');
 		$pdf->Ln(3);
 
 		// EN: Project block
@@ -211,13 +178,24 @@ class pdf_rgrequest extends ModelePDF
 
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 9);
 		$invoices = rgwarranty_fetch_invoices_for_cycle($this->db, $object->entity, $object->situation_cycle_ref);
+		if (!is_array($invoices)) {
+			$invoices = array();
+		}
 		$total = 0;
-		foreach ($invoices as $invoice) {
-			$amount = rgwarranty_calc_rg_amount_ttc($invoice);
-			$total += $amount;
-			$pdf->Cell(50, 6, $invoice->ref, 1, 0, 'L');
-			$pdf->Cell(40, 6, dol_print_date($invoice->datef, 'day', $outputlangs), 1, 0, 'L');
-			$pdf->Cell(50, 6, price($amount, 0, $outputlangs), 1, 1, 'R');
+		if (empty($invoices)) {
+			$pdf->Cell(140, 6, $outputlangs->transnoentities('RGWNoInvoiceForCycle'), 1, 1, 'L');
+		} else {
+			foreach ($invoices as $invoice) {
+				$amount = rgwarranty_calc_rg_amount_ttc($invoice);
+				$total += $amount;
+				$invoiceDateLabel = '';
+				if (!empty($invoice->datef)) {
+					$invoiceDateLabel = dol_print_date($invoice->datef, 'day', $outputlangs);
+				}
+				$pdf->Cell(50, 6, $invoice->ref, 1, 0, 'L');
+				$pdf->Cell(40, 6, $invoiceDateLabel, 1, 0, 'L');
+				$pdf->Cell(50, 6, price($amount, 0, $outputlangs), 1, 1, 'R');
+			}
 		}
 
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), 'B', 9);

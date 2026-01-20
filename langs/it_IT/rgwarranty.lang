@@ -50,3 +50,6 @@ RGWEmailTemplateRequest=Modello email richiesta
 RGWEmailTemplateReminder=Modello email sollecito
 RGWCronUpdateStatus=Aggiorna stati RG
 RGWCronUpdateStatusComment=Aggiorna stati RG in base alle date
+RGWMissingPdfBaseClass=Classe PDF di base non disponibile.
+RGWNoReceptionDate=Data di ricezione non impostata
+RGWNoInvoiceForCycle=Nessuna fattura collegata al ciclo

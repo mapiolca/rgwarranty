@@ -79,3 +79,7 @@ Initial version
 ## 1.1.18
 
 * Chargement de pdf.lib.php via le chemin htdocs/core/lib.
+
+## 1.1.19
+
+* Nettoyage des includes PDF et robustesse sans fatal/warnings.

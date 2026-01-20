@@ -115,6 +115,9 @@ function rgwarranty_fetch_invoices_for_cycle($db, $entity, $situationCycleRef)
 			$invoices[] = $obj;
 		}
 	}
+	if (!is_array($invoices)) {
+		$invoices = array();
+	}
 	return $invoices;
 }
 
