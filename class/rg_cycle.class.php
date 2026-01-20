@@ -196,6 +196,54 @@ class RGCycle extends CommonObject
 	}
 
 	/**
+	 * Generate document from model.
+	 *
+	 * @param	string		$model		Model name
+	 * @param	Translate	$outputlangs	Output langs
+	 * @param	int			$hidedetails	Hide details
+	 * @param	int			$hidedesc	Hide desc
+	 * @param	int			$hideref		Hide ref
+	 * @return	int						>0 if ok
+	 */
+	public function generateDocument($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+	{
+		global $langs;
+
+		if (empty($outputlangs)) {
+			$outputlangs = $langs;
+		}
+
+		// EN: Secure model name and include model class
+		// FR: Sécuriser le nom du modèle et inclure la classe du modèle
+		$model = preg_replace('/[^a-z0-9_]/i', '', $model);
+		if (empty($model)) {
+			$model = 'rgrequest';
+		}
+
+		$modelpath = dol_buildpath('/custom/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
+		if (!is_file($modelpath)) {
+			$this->error = $outputlangs->trans('ErrorFileDoesNotExists', $modelpath);
+			return -1;
+		}
+
+		require_once $modelpath;
+
+		$classname = 'pdf_'.$model;
+		if (!class_exists($classname)) {
+			$this->error = $outputlangs->trans('ErrorFailedToLoadTemplate');
+			return -1;
+		}
+
+		$docmodel = new $classname($this->db);
+		if (!method_exists($docmodel, 'write_file')) {
+			$this->error = $outputlangs->trans('ErrorFailedToLoadTemplate');
+			return -1;
+		}
+
+		return $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+	}
+
+	/**
 	 * Fetch cycle by situation ref.
 	 *
 	 * @param	int	$situationRef	Situation cycle ref
