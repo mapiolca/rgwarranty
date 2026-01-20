@@ -23,6 +23,7 @@ RGWSetReception=Réceptionner chantier
 RGWRequest=Demander restitution RG
 RGWReminder=Relancer
 RGWPayment=Saisir règlement RG
+RGWDocuments=Documents RG
 RGWTimeline=Historique du cycle
 RGWRequestPdfModel=Demande de restitution RG
 RGWRequestLetterTitle=Demande de restitution de la retenue de garantie

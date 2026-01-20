@@ -23,6 +23,7 @@ RGWSetReception=Registrar recepción
 RGWRequest=Solicitar devolución RG
 RGWReminder=Enviar recordatorio
 RGWPayment=Registrar pago RG
+RGWDocuments=Documentos RG
 RGWTimeline=Historial del ciclo
 RGWRequestPdfModel=Solicitud de devolución RG
 RGWRequestLetterTitle=Solicitud de devolución de la retención

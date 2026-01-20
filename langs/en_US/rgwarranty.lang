@@ -23,6 +23,7 @@ RGWSetReception=Set reception
 RGWRequest=Request retention release
 RGWReminder=Send reminder
 RGWPayment=Enter retention payment
+RGWDocuments=RG documents
 RGWTimeline=Cycle timeline
 RGWRequestPdfModel=Retention release request
 RGWRequestLetterTitle=Retention release request

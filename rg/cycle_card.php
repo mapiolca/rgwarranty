@@ -100,6 +100,10 @@ $formactions = new FormActions($db);
 $hookmanager = new HookManager($db);
 $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 
+// EN: Load document driver for module
+// FR: Charger le driver documents du module
+dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
+
 $error = 0;
 
 // EN: Allow hooks to process actions
@@ -204,7 +208,10 @@ print '<div class="fichehalfright">';
 	// EN: Documents block
 	// FR: Bloc documents
 	$modulepart = 'rgwarranty';
-	$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$object->ref;
+	// EN: Align output directory with generateDocument()
+	// FR: Aligner le répertoire de sortie avec generateDocument()
+	$documentref = dol_sanitizeFileName($object->ref);
+	$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$documentref;
 	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $permissiontowrite;
 	$delallowed = $permissiontowrite;
@@ -251,7 +258,7 @@ print '<div class="fichehalfright">';
 	if (method_exists($formfile, 'showdocuments')) {
 		$showdocParams = array(
 			'modulepart' => $modulepart,
-			'filename' => $object->ref,
+			'filename' => $documentref,
 			'ref' => $object->ref,
 			'filedir' => $filedir,
 			'urlsource' => $urlsource,
