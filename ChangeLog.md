@@ -55,3 +55,7 @@ Initial version
 ## 1.1.12
 
 * Correction du chemin de chargement de la bibliothèque rgwarranty dans le modèle PDF.
+
+## 1.1.13
+
+* Fallback DOL_DOCUMENT_ROOT pour charger doc_pdf et garantir ModelePDF.

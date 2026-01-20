@@ -45,6 +45,20 @@ if (!$docPdfLoaded && function_exists('dol_include_once')) {
 		}
 	}
 }
+// EN: Hard fallback using DOL_DOCUMENT_ROOT for environments without dol_buildpath/dol_include_once resolution
+// FR: Fallback direct via DOL_DOCUMENT_ROOT pour les environnements sans résolution dol_buildpath/dol_include_once
+if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php';
+	$docPdfLoaded = true;
+}
+if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/pdf/doc_pdf.class.php')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/pdf/doc_pdf.class.php';
+	$docPdfLoaded = true;
+}
+if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
+	$docPdfLoaded = true;
+}
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
