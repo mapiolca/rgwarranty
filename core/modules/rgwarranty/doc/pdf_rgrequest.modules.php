@@ -21,7 +21,13 @@
  *\brief		PDF model for RG request letter.
  */
 
-require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
+// EN: Load base PDF class (compat with Dolibarr 21+ path)
+// FR: Charger la classe PDF de base (compat avec chemin Dolibarr 21+)
+if (is_file(DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php';
+} else {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
+}
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';

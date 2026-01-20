@@ -43,3 +43,7 @@ Initial version
 ## 1.1.9
 
 * Suppression des références à l'ancien dossier du module.
+
+## 1.1.10
+
+* Compatibilité du chargement de la classe PDF de base pour le modèle RG (Dolibarr 21+).
