@@ -25,6 +25,7 @@
 // FR: Charger le module PDF de base du core
 dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
+dol_include_once('/core/lib/files.lib.php');
 
 // EN: Provide fallback if base class is missing to avoid fatal
 // FR: Fournir un fallback si la classe de base manque pour éviter un fatal
@@ -65,6 +66,20 @@ class ModelePDFRgwarranty extends ModelePDF
 	 * @var string Subdir for model lookup
 	 */
 	public $scandir;
+
+	/**
+	 * Return list of available document models.
+	 *
+	 * @param	DoliDB	$db		Database handler
+	 * @param	int		$max	Maximum number of models
+	 * @return	array|int			List of models or <0 on error
+	 */
+	public static function liste_modeles($db, $max = 0)
+	{
+		// EN: Return list of models for modulepart rgwarranty
+		// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+		return getListOfModels($db, 'rgwarranty', $max);
+	}
 
 	/**
 	 * Constructor
