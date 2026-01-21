@@ -40,65 +40,64 @@ if (!class_exists('ModelePDF')) {
 /**
  * PDF model handler for RG Warranty.
  */
-if (!class_exists('ModelePDFRgwarranty')) {
-	class ModelePDFRgwarranty extends ModelePDF
+class ModelePDFRgw_cycle extends ModelePDF
+{
+	/**
+	 * @var DoliDB Database handler
+	 */
+	public $db;
+
+	/**
+	 * @var string Model name
+	 */
+	public $name;
+
+	/**
+	 * @var string Model description
+	 */
+	public $description;
+
+	/**
+	 * @var string Document type
+	 */
+	public $type;
+
+	/**
+	 * @var string Subdir for model lookup
+	 */
+	public $scandir;
+
+	/**
+	 * Return list of available document models.
+	 *
+	 * @param	DoliDB	$db		Database handler
+	 * @param	int		$max	Maximum number of models
+	 * @return	array|int			List of models or <0 on error
+	 */
+	public static function liste_modeles($db, $max = 0)
 	{
-		/**
-		 * @var DoliDB Database handler
-		 */
-		public $db;
-
-		/**
-		 * @var string Model name
-		 */
-		public $name;
-
-		/**
-		 * @var string Model description
-		 */
-		public $description;
-
-		/**
-		 * @var string Document type
-		 */
-		public $type;
-
-		/**
-		 * @var string Subdir for model lookup
-		 */
-		public $scandir;
-
-		/**
-		 * Return list of available document models.
-		 *
-		 * @param	DoliDB	$db		Database handler
-		 * @param	int		$max	Maximum number of models
-		 * @return	array|int			List of models or <0 on error
-		 */
-		public static function liste_modeles($db, $max = 0)
-		{
-			// EN: Return list of models for modulepart rgwarranty
-			// FR: Retourner la liste des modèles pour le modulepart rgwarranty
-			return getListOfModels($db, 'rgwarranty', $max);
-		}
-
-		/**
-		 * Constructor
-		 *
-		 * @param	DoliDB	$db	Database handler
-		 */
-		public function __construct($db)
-		{
-			global $langs;
-
-			// EN: Initialize model metadata
-			// FR: Initialiser les métadonnées du modèle
-			$this->db = $db;
-			$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
-			$this->name = 'rgwarranty';
-			$this->description = $langs->trans('RGWDocuments');
-			$this->type = 'pdf';
-			$this->scandir = 'rgwarranty';
-		}
+		// EN: Return list of models for modulepart rgwarranty
+		// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+		return getListOfModels($db, 'rgwarranty', $max);
 	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param	DoliDB	$db	Database handler
+	 */
+	public function __construct($db)
+	{
+		global $langs;
+
+		// EN: Initialize model metadata
+		// FR: Initialiser les métadonnées du modèle
+		$this->db = $db;
+		$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
+		$this->name = 'rgwarranty';
+		$this->description = $langs->trans('RGWDocuments');
+		$this->type = 'pdf';
+		$this->scandir = 'rgwarranty';
+	}
+	
 }
