@@ -26,6 +26,29 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
 /**
+ * Prepare admin tabs.
+ *
+ * @return	array	Tabs array
+ */
+function rgwarranty_admin_prepare_head()
+{
+	global $langs;
+
+	// EN: Prepare admin tabs
+	// FR: Préparer les onglets d'administration
+	$langs->load('rgwarranty@rgwarranty');
+
+	$head = array();
+	$head[] = array(
+		dol_buildpath('/rgwarranty/admin/setup.php', 1),
+		$langs->trans('RGWModuleSetup'),
+		'setup'
+	);
+
+	return $head;
+}
+
+/**
  * Prepare cycle tabs.
  *
  * @param	RGCycle	$object		Cycle object
