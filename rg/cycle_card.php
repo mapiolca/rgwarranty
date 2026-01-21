@@ -444,50 +444,25 @@ if ($action != 'presend') {
 	// EN: Actions/agenda block
 	// FR: Bloc actions/agenda
 	print load_fiche_titre($langs->trans('Actions'));
-	if (method_exists($formactions, 'showactions')) {
-		$showactionsavailable = true;
-		$showactionParams = array(
-			'object' => $object,
-			'socid' => $object->fk_soc,
-			'backtopage' => $_SERVER['PHP_SELF'].'?id='.$object->id,
-			'action' => $action
-		);
-		$showactionArgs = array();
-		$showactionReflect = new ReflectionMethod($formactions, 'showactions');
-		foreach ($showactionReflect->getParameters() as $parameter) {
-			$paramName = $parameter->getName();
-			if (array_key_exists($paramName, $showactionParams)) {
-				$showactionArgs[] = $showactionParams[$paramName];
-			} elseif ($parameter->isDefaultValueAvailable()) {
-				$showactionArgs[] = $parameter->getDefaultValue();
-			} else {
-				$showactionArgs[] = null;
-			}
-		}
-		call_user_func_array(array($formactions, 'showactions'), $showactionArgs);
+
+	// EN: Limit timeline to last events like core invoice card
+	// FR: Limiter l'historique aux derniers événements comme la fiche facture
+	$MAXEVENT = 10;
+
+	// EN: Provide shortcuts to full conversation and list
+	// FR: Fournir des raccourcis vers la conversation et la liste complètes
+	$morehtmlcenter = '<div class="nowraponall">';
+	$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
+	$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
+	$morehtmlcenter .= '</div>';
+
+	// EN: Use native helper to show actions timeline
+	// FR: Utiliser le helper natif pour afficher l'historique des actions
+	$somethingshown = $formactions->showactions($object, 'rgwcycle', $object->fk_soc, 1, '', $MAXEVENT, '', $morehtmlcenter);
+	if (empty($somethingshown)) {
+		print $langs->trans('None');
 	}
-
-	// EN: Timeline events fallback when agenda is not available
-	// FR: Historique en repli si l'agenda n'est pas disponible
-	if (empty($showactionsavailable)) {
-		// EN: Limit timeline to last events like core invoice card
-		// FR: Limiter l'historique aux derniers événements comme la fiche facture
-		$MAXEVENT = 10;
-
-		// EN: Provide shortcuts to full conversation and list
-		// FR: Fournir des raccourcis vers la conversation et la liste complètes
-		$morehtmlcenter = '<div class="nowraponall">';
-		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
-		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
-		$morehtmlcenter .= '</div>';
-
-		// EN: Use native helper to show actions timeline
-		// FR: Utiliser le helper natif pour afficher l'historique des actions
-		$somethingshown = $formactions->showactions($object, 'rgwcycle', $object->fk_soc, 1, '', $MAXEVENT, '', $morehtmlcenter);
-		if (empty($somethingshown)) {
-			print $langs->trans('None');
-		}
-	}
+	
 	print '</div>';
 	print '<div class="clearboth"></div>';
 	print '</div>';
