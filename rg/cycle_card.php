@@ -387,7 +387,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	);
 
 	$somethingshown = $formfile->numoffiles;
-
+	print '</div>';
 	print '<div class="fichehalfright">';
 
 	// EN: Limit timeline to last events like core invoice card
