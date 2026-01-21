@@ -24,6 +24,7 @@
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+dol_include_once('/comm/action/class/actioncomm.class.php');
 
 /**
  * Prepare admin tabs.
@@ -278,16 +279,45 @@ function rgwarranty_get_cycle_totals($db, $cycleId)
  */
 function rgwarranty_log_event($db, $entity, $cycleId, $type, $label, $user, $extra = array(), $fkAction = 0, $fkPaiement = 0, $fkBank = 0)
 {
-	// EN: Store event into rgw_event
-	// FR: Enregistrer l'événement dans rgw_event
 	$userId = 0;
 	if (is_object($user)) {
 		$userId = (int) $user->id;
 	}
-	$sql = "INSERT INTO ".$db->prefix()."rgw_event";
-	$sql .= "(entity, fk_cycle, date_event, event_type, label, fk_user, fk_actioncomm, fk_paiement, fk_bank, extraparams, datec)";
-	$sql .= " VALUES (".((int) $entity).", ".((int) $cycleId).", '".$db->idate(dol_now())."', '".$db->escape($type)."', '".$db->escape($label)."', ".$userId.", ".((int) $fkAction).", ".((int) $fkPaiement).", ".((int) $fkBank).", '".$db->escape(json_encode($extra))."', '".$db->idate(dol_now())."')";
-	return $db->query($sql) ? 1 : -1;
+
+	// EN: Store event into actioncomm using native object
+	// FR: Enregistrer l'événement dans actioncomm via l'objet natif
+	if (class_exists('ActionComm')) {
+		$actioncomm = new ActionComm($db);
+		$actioncomm->type_code = 'AC_OTH_AUTO';
+		$actioncomm->label = $label;
+		$actioncomm->note = $label;
+		if (!empty($type) || !empty($extra)) {
+			$actioncomm->note .= "\n".json_encode(array(
+				'type' => $type,
+				'extra' => $extra,
+				'fk_actioncomm' => $fkAction,
+				'fk_paiement' => $fkPaiement,
+				'fk_bank' => $fkBank,
+			));
+		}
+		$actioncomm->datep = dol_now();
+		$actioncomm->datep2 = $actioncomm->datep;
+		$actioncomm->userownerid = $userId;
+		$actioncomm->fk_user_action = $userId;
+		$actioncomm->fk_user_author = $userId;
+		$actioncomm->fk_element = (int) $cycleId;
+		$actioncomm->elementtype = 'rgw_cycle';
+		$actioncomm->entity = (int) $entity;
+
+		if (method_exists($actioncomm, 'add')) {
+			return $actioncomm->add($user) > 0 ? 1 : -1;
+		}
+		if (method_exists($actioncomm, 'create')) {
+			return $actioncomm->create($user) > 0 ? 1 : -1;
+		}
+	}
+
+	return -1;
 }
 
 /**

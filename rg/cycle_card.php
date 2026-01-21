@@ -54,6 +54,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+dol_include_once('/comm/action/class/actioncomm.class.php');
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
@@ -354,7 +355,9 @@ if ($action != 'presend') {
 	print '<div class="fichehalfleft">';
 	// EN: Documents block
 	// FR: Bloc documents
-	$modulepart = 'Rgwarranty';
+	// EN: Use module identifier to match setup document models
+	// FR: Utiliser l'identifiant du module pour correspondre aux modèles de l'admin
+	$modulepart = $object->module;
 	// EN: Align output directory with generateDocument()
 	// FR: Aligner le répertoire de sortie avec generateDocument()
 	$documentref = dol_sanitizeFileName($object->ref);
@@ -467,42 +470,23 @@ if ($action != 'presend') {
 	// EN: Timeline events fallback when agenda is not available
 	// FR: Historique en repli si l'agenda n'est pas disponible
 	if (empty($showactionsavailable)) {
-		print load_fiche_titre($langs->trans('RGWTimeline'));
-		print '<div class="div-table-responsive">';
-		print '<table class="noborder centpercent">';
-		print '<tr class="liste_titre">';
-		print '<th>'.$langs->trans('Date').'</th>';
-		print '<th>'.$langs->trans('Type').'</th>';
-		print '<th>'.$langs->trans('Label').'</th>';
-		print '<th>'.$langs->trans('User').'</th>';
-		print '</tr>';
+		// EN: Limit timeline to last events like core invoice card
+		// FR: Limiter l'historique aux derniers événements comme la fiche facture
+		$MAXEVENT = 10;
 
-		$sql = "SELECT e.rowid, e.date_event, e.event_type, e.label, u.login";
-		$sql .= " FROM ".$db->prefix()."rgw_event as e";
-		$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = e.fk_user";
-		$sql .= " WHERE e.fk_cycle = ".((int) $object->id);
-		$sql .= " AND e.entity = ".((int) $conf->entity);
-		$sql .= " ORDER BY e.date_event DESC";
-		$resql = $db->query($sql);
-		if ($resql) {
-			while ($obj = $db->fetch_object($resql)) {
-				// EN: Avoid invalid dates for display
-				// FR: Éviter les dates invalides à l'affichage
-				$eventDate = '';
-				$eventDateTs = $db->jdate($obj->date_event);
-				if (!empty($eventDateTs)) {
-					$eventDate = dol_print_date($eventDateTs, 'dayhour');
-				}
-				print '<tr class="oddeven">';
-				print '<td>'.$eventDate.'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
-				print '</tr>';
-			}
+		// EN: Provide shortcuts to full conversation and list
+		// FR: Fournir des raccourcis vers la conversation et la liste complètes
+		$morehtmlcenter = '<div class="nowraponall">';
+		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
+		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
+		$morehtmlcenter .= '</div>';
+
+		// EN: Use native helper to show actions timeline
+		// FR: Utiliser le helper natif pour afficher l'historique des actions
+		$somethingshown = $formactions->showactions($object, 'rgwcycle', $object->fk_soc, 1, '', $MAXEVENT, '', $morehtmlcenter);
+		if (empty($somethingshown)) {
+			print $langs->trans('None');
 		}
-		print '</table>';
-		print '</div>';
 	}
 	print '</div>';
 	print '<div class="clearboth"></div>';
