@@ -71,6 +71,11 @@ $permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'rea
 $permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
 $permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
+// EN: Map permissions for document generation/deletion
+// FR: Mapper les permissions pour la génération/suppression de documents
+$usercanread = $permissiontoread;
+$usercancreate = $permissiontowrite;
+
 if (!$permissiontoread) {
 	accessforbidden();
 }
@@ -194,10 +199,12 @@ $showactionsavailable = false;
 // EN: Prepare labels for left column
 // FR: Préparer les libellés pour la colonne gauche
 $thirdpartyLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
+$soc = new Societe($db);
 if (!empty($object->fk_soc)) {
 	$thirdparty = new Societe($db);
 	$thirdparty->fetch($object->fk_soc);
 	$thirdpartyLabel = $thirdparty->getNomUrl(1);
+	$soc = $thirdparty;
 }
 $projectLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
 if (!empty($object->fk_projet) && isModEnabled('project')) {
@@ -363,7 +370,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	$tooltipAfterComboOfModels = '';
 
 	print $formfile->showdocuments(
-		'rgw_cycle',
+		'rgwarranty',
 		$filename,
 		$filedir,
 		$urlsource,
