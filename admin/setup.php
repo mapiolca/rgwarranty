@@ -53,9 +53,17 @@ if (!$res) {
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../lib/rgwarranty.lib.php';
+
+// EN: Load security helpers for CSRF token checks.
+// FR: Charger les helpers de sécurité pour la vérification CSRF.
+if (!function_exists('checkToken')) {
+	dol_include_once('/core/lib/security2.lib.php');
+}
+if (!function_exists('checkToken')) {
+	dol_include_once('/core/lib/security.lib.php');
+}
 
 /**
  * @var Conf $conf
