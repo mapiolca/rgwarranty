@@ -27,6 +27,12 @@ dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/files.lib.php');
 
+// EN: Ensure base PDF class is loaded for older contexts
+// FR: S'assurer que la classe PDF de base est chargée pour les anciens contextes
+if (!class_exists('ModelePDF')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/modules_pdf.php';
+}
+
 // EN: Provide fallback if base class is missing to avoid fatal
 // FR: Fournir un fallback si la classe de base manque pour éviter un fatal
 if (!class_exists('ModelePDF')) {
