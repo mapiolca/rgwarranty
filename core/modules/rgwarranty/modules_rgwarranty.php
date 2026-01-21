@@ -21,11 +21,16 @@
  *\brief		RG Warranty documents module descriptor.
  */
 
-// EN: Load core PDF base module
-// FR: Charger le module PDF de base du core
-dol_include_once('/core/modules/modules_pdf.php');
-dol_include_once('/core/lib/pdf.lib.php');
-dol_include_once('/core/lib/files.lib.php');
+// EN: Ensure the base PDF class is available from core
+// FR: Assurer la disponibilité de la classe PDF de base du core
+if (!class_exists('ModelePDF')) {
+	require_once DOL_DOCUMENT_ROOT . '/core/modules/modules_pdf.php';
+}
+
+// EN: Load core PDF helpers and file helpers
+// FR: Charger les helpers PDF et fichiers du core
+require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
 /**
  * PDF model handler for RG Warranty.
