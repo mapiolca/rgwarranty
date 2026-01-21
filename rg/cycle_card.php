@@ -176,7 +176,6 @@ if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
 $invoices = rgwarranty_fetch_invoices_for_cycle($db, $conf->entity, $object->situation_cycle_ref);
-var_dump($invoice->status);
 rgwarranty_sync_cycle_lines($db, $object, $invoices);
 $totals = rgwarranty_get_cycle_totals($db, $object->id);
 
@@ -272,13 +271,13 @@ foreach ($invoices as $invoice) {
 	$invoicestatuslabel = '';
 	// EN: Use fk_statut value from invoice object for correct status
 	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
-	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
+	$invoicestatus = $invoice->statut ?? $invoice->fk_statut ?? $invoice->status ?? 0;
 	if (function_exists('dol_print_invoice_status')) {
 		$invoicestatuslabel = dol_print_invoice_status($invoicestatus, 1);
 	} else {
-		$tmpinvoice = new Facture($db);
-		$tmpinvoice->statut = $invoicestatus;
-		$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
+		$tmpinvoiceStatus = new Facture($db);
+		$tmpinvoiceStatus->statut = $invoicestatus;
+		$invoicestatuslabel = $tmpinvoiceStatus->getLibStatut(1);
 	}
 	// EN: Avoid invalid dates for display
 	// FR: Éviter les dates invalides à l'affichage
@@ -287,8 +286,18 @@ foreach ($invoices as $invoice) {
 		$invoiceDate = dol_print_date($invoice->datef, 'day');
 	}
 
+	// EN: Get invoice id safely (Facture uses ->id, SQL rows may use ->rowid)
+	// FR: Récupérer l'id facture de manière robuste (Facture ->id, lignes SQL ->rowid)
+	$invoiceid = 0;
+	if (!empty($invoice->id)) {
+		$invoiceid = (int) $invoice->id;
+	} elseif (!empty($invoice->rowid)) {
+		$invoiceid = (int) $invoice->rowid;
+	}
+	$tmpinvoice = null;
+
 	$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
-	$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
+	$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".$invoiceid;
 	$resline = $db->query($sql);
 	$lineamount = 0;
 	$linepaid = 0;
@@ -299,14 +308,34 @@ foreach ($invoices as $invoice) {
 	$lineremaining = price2num($lineamount - $linepaid, 'MT');
 
 	print '<tr class="oddeven">';
-	print '<td>'.$invoice->getNomUrl(1).'</td>';
+	// EN: Build invoice label safely (Facture object or SQL row fallback)
+	// FR: Construire l'affichage facture de façon robuste (objet Facture ou repli)
+	$invoiceLabel = '';
+	if (is_object($invoice) && method_exists($invoice, 'getNomUrl')) {
+		$invoiceLabel = $invoice->getNomUrl(1);
+	} elseif ($invoiceid > 0) {
+		$tmpinvoice = new Facture($db);
+		$tmpinvoice->fetch($invoiceid);
+		$invoiceLabel = $tmpinvoice->getNomUrl(1);
+	}
+	if ($invoiceLabel === '') {
+		$invoiceLabel = '<span class="opacitymedium">'.dol_escape_htmltag((string) ($invoice->ref ?? $invoiceid)).'</span>';
+	}
+	$invoiceTotalTtc = 0;
+	if (isset($invoice->total_ttc)) {
+		$invoiceTotalTtc = $invoice->total_ttc;
+	} elseif (is_object($tmpinvoice) && isset($tmpinvoice->total_ttc)) {
+		$invoiceTotalTtc = $tmpinvoice->total_ttc;
+	}
+
+	print '<td>'.$invoiceLabel.'</td>';
 	print '<td>'.$invoiceDate.'</td>';
 	print '<td>'.$invoicestatuslabel.'</td>';
-	print '<td class="right">'.price($invoice->total_ttc).'</td>';
+	print '<td class="right">'.price($invoiceTotalTtc).'</td>';
 	print '<td class="right">'.price($lineamount).'</td>';
 	print '<td class="right">'.price($linepaid).'</td>';
 	print '<td class="right">'.price($lineremaining).'</td>';
-	print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->id.'">'.img_picto('', 'search').'</a></td>';
+	print '<td class="center"><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoiceid.'">'.img_picto('', 'search').'</a></td>';
 	print '</tr>';
 }
 print '</table>';
