@@ -45,6 +45,20 @@ if (!$rgwarrantyPdfBaseLoaded) {
 	class ModelePDFRgwarranty
 	{
 		public $error = '';
+
+		/**
+		 * Return list of available document models.
+		 *
+		 * @param	DoliDB	$db		Database handler
+		 * @param	int		$max	Maximum number of models
+		 * @return	array|int			List of models or <0 on error
+		 */
+		public static function liste_modeles($db, $max = 0)
+		{
+			// EN: Return list of models for modulepart rgwarranty
+			// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+			return getListOfModels($db, 'rgwarranty', $max);
+		}
 	}
 }
 
