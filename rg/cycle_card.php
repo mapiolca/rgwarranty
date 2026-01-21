@@ -271,7 +271,7 @@ foreach ($invoices as $invoice) {
 	$invoicestatuslabel = '';
 	// EN: Use fk_statut value from invoice object for correct status
 	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
-	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
+	$invoicestatus = isset($invoice->fk_statut) ? $invoice->statut : $invoice->status;
 	if (function_exists('dol_print_invoice_status')) {
 		$invoicestatuslabel = dol_print_invoice_status($invoicestatus, 1);
 	} else {
