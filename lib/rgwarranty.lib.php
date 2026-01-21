@@ -23,6 +23,54 @@
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+
+/**
+ * Prepare admin tabs.
+ *
+ * @return	array	Tabs array
+ */
+function rgwarranty_admin_prepare_head()
+{
+	global $langs;
+
+	// EN: Prepare admin tabs
+	// FR: Préparer les onglets d'administration
+	$langs->load('rgwarranty@rgwarranty');
+
+	$head = array();
+	$head[] = array(
+		dol_buildpath('/rgwarranty/admin/setup.php', 1),
+		$langs->trans('RGWModuleSetup'),
+		'setup'
+	);
+
+	return $head;
+}
+
+/**
+ * Prepare cycle tabs.
+ *
+ * @param	RGCycle	$object		Cycle object
+ * @return	array				Tabs array
+ */
+function rgwarranty_cycle_prepare_head($object)
+{
+	global $langs;
+
+	// EN: Prepare tabs for cycle card
+	// FR: Préparer les onglets pour la carte cycle
+	$langs->load('rgwarranty@rgwarranty');
+
+	$head = array();
+	$head[] = array(
+		dol_buildpath('/rgwarranty/rg/cycle_card.php', 1).'?id='.$object->id,
+		$langs->trans('Card'),
+		'card'
+	);
+
+	return $head;
+}
 
 /**
  * Get status label.
@@ -112,7 +160,23 @@ function rgwarranty_fetch_invoices_for_cycle($db, $entity, $situationCycleRef)
 	$resql = $db->query($sql);
 	if ($resql) {
 		while ($obj = $db->fetch_object($resql)) {
-			$invoices[] = $obj;
+			// EN: Build a Facture object without extra queries
+			// FR: Construire un objet Facture sans requêtes supplémentaires
+			$invoice = new Facture($db);
+			$invoice->id = (int) $obj->rowid;
+			$invoice->rowid = (int) $obj->rowid;
+			$invoice->ref = $obj->ref;
+			$invoice->datef = $db->jdate($obj->datef);
+			$invoice->total_ttc = price2num($obj->total_ttc, 'MT');
+			$invoice->status = (int) $obj->status;
+			$invoice->statut = (int) $obj->status;
+			$invoice->retained_warranty = price2num($obj->retained_warranty, 'MU');
+			$invoice->multicurrency_total_ttc = price2num($obj->multicurrency_total_ttc, 'MT');
+			$invoice->multicurrency_code = $obj->multicurrency_code;
+			$invoice->fk_soc = (int) $obj->fk_soc;
+			$invoice->fk_projet = (int) $obj->fk_projet;
+
+			$invoices[] = $invoice;
 		}
 	}
 	if (!is_array($invoices)) {

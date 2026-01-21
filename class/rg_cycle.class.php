@@ -87,6 +87,7 @@ class RGCycle extends CommonObject
 	public $situation_cycle_ref;
 	public $fk_projet;
 	public $fk_soc;
+	public $socid;
 	public $date_reception;
 	public $date_limit;
 	public $status;
@@ -143,6 +144,9 @@ class RGCycle extends CommonObject
 				$this->situation_cycle_ref = (int) $obj->situation_cycle_ref;
 				$this->fk_projet = (int) $obj->fk_projet;
 				$this->fk_soc = (int) $obj->fk_soc;
+				// EN: Keep socid alias for core helpers compatibility
+				// FR: Conserver l'alias socid pour compatibilité core
+				$this->socid = $this->fk_soc;
 				$this->date_reception = $this->db->jdate($obj->date_reception);
 				$this->date_limit = $this->db->jdate($obj->date_limit);
 				$this->status = (int) $obj->status;
