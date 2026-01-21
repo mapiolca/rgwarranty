@@ -118,28 +118,19 @@ if (in_array($action, array('set', 'del', 'setdoc', 'specimen'), true)) {
 	$model = GETPOST('model', 'alpha');
 	if (!empty($model)) {
 		if ($action == 'set') {
-			$sql = "SELECT rowid FROM ".$db->prefix()."document_model";
-			$sql .= " WHERE nom = '".$db->escape($model)."' AND type = '".$db->escape($docType)."'";
-			$sql .= " AND entity = ".((int) $conf->entity);
-			$resql = $db->query($sql);
-			if ($resql && $db->num_rows($resql)) {
-				$obj = $db->fetch_object($resql);
-				$sqlupdate = "UPDATE ".$db->prefix()."document_model";
-				$sqlupdate .= " SET active = 1";
-				$sqlupdate .= " WHERE rowid = ".((int) $obj->rowid);
-				$db->query($sqlupdate);
+			$res = addDocumentModel($model, $docType);
+			if ($res > 0) {
+				setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 			} else {
-				$sqlinsert = "INSERT INTO ".$db->prefix()."document_model (nom, type, entity, active)";
-				$sqlinsert .= " VALUES ('".$db->escape($model)."', '".$db->escape($docType)."', ".((int) $conf->entity).", 1)";
-				$db->query($sqlinsert);
+				setEventMessages($langs->trans('Error'), null, 'errors');
 			}
-			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 		} elseif ($action == 'del') {
-			$sqldel = "DELETE FROM ".$db->prefix()."document_model";
-			$sqldel .= " WHERE nom = '".$db->escape($model)."' AND type = '".$db->escape($docType)."'";
-			$sqldel .= " AND entity = ".((int) $conf->entity);
-			$db->query($sqldel);
-			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+			$res = delDocumentModel($model, $docType);
+			if ($res > 0) {
+				setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+			} else {
+				setEventMessages($langs->trans('Error'), null, 'errors');
+			}
 		} elseif ($action == 'setdoc') {
 			dolibarr_set_const($db, 'RGWARRANTY_PDF_MODEL', $model, 'chaine', 0, '', $conf->entity);
 			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
@@ -228,12 +219,12 @@ print '</tr>';
 $models = getListOfModels($db, $docType, 0);
 $defaultmodel = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
 $activeModels = array();
-$sqlmodel = "SELECT nom, active FROM ".$db->prefix()."document_model";
+$sqlmodel = "SELECT nom FROM ".$db->prefix()."document_model";
 $sqlmodel .= " WHERE type = '".$db->escape($docType)."' AND entity = ".((int) $conf->entity);
 $resmodel = $db->query($sqlmodel);
 if ($resmodel) {
 	while ($obj = $db->fetch_object($resmodel)) {
-		$activeModels[$obj->nom] = (int) $obj->active;
+		$activeModels[$obj->nom] = 1;
 	}
 }
 
@@ -241,7 +232,7 @@ $foundmodel = 0;
 if (is_array($models)) {
 	foreach ($models as $model) {
 		$foundmodel++;
-		$enabled = !empty($activeModels[$model]);
+		$enabled = array_key_exists($model, $activeModels);
 		$isdefault = ($model === $defaultmodel);
 		$modeldesc = '';
 		$modelpath = dol_buildpath('/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
