@@ -56,15 +56,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../lib/rgwarranty.lib.php';
 
-// EN: Load security helpers for CSRF token checks.
-// FR: Charger les helpers de sécurité pour la vérification CSRF.
-if (!function_exists('checkToken')) {
-	dol_include_once('/core/lib/security2.lib.php');
-}
-if (!function_exists('checkToken')) {
-	dol_include_once('/core/lib/security.lib.php');
-}
-
 /**
  * @var Conf $conf
  * @var DoliDB $db
@@ -82,10 +73,15 @@ $action = GETPOST('action', 'aZ09');
 
 $form = new Form($db);
 
-if ($action == 'save') {
-	if (!checkToken()) {
+if (in_array($action, array('save', 'setmod', 'set', 'del', 'setdoc', 'specimen'), true)) {
+	// EN: Enforce CSRF token validation for state-changing actions.
+	// FR: Forcer la validation du jeton CSRF pour les actions modifiant l'état.
+	if (GETPOST('token', 'alphanohtml') !== newToken()) {
 		accessforbidden();
 	}
+}
+
+if ($action == 'save') {
 	// EN: Save module constants
 	// FR: Enregistrer les constantes du module
 	$delayDays = GETPOSTINT('RGWARRANTY_DELAY_DAYS');
@@ -103,12 +99,6 @@ if ($action == 'save') {
 	dolibarr_set_const($db, 'RGWARRANTY_EMAILTPL_REMINDER', $emailReminder, 'chaine', 0, '', $conf->entity);
 
 	setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
-}
-
-if (in_array($action, array('setmod', 'set', 'del', 'setdoc', 'specimen'), true)) {
-	if (!checkToken()) {
-		accessforbidden();
-	}
 }
 
 // EN: Handle numbering module activation
