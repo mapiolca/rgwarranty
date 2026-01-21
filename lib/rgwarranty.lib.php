@@ -168,8 +168,8 @@ function rgwarranty_fetch_invoices_for_cycle($db, $entity, $situationCycleRef)
 			$invoice->ref = $obj->ref;
 			$invoice->datef = $db->jdate($obj->datef);
 			$invoice->total_ttc = price2num($obj->total_ttc, 'MT');
-			$invoice->status = (int) $obj->fk_statut;
-			$invoice->statut = (int) $obj->fk_statut;
+			$invoice->status = (int) $obj->status;
+			$invoice->statut = (int) $obj->statut;
 			$invoice->retained_warranty = price2num($obj->retained_warranty, 'MU');
 			$invoice->multicurrency_total_ttc = price2num($obj->multicurrency_total_ttc, 'MT');
 			$invoice->multicurrency_code = $obj->multicurrency_code;
