@@ -24,6 +24,7 @@
 // EN: Load core PDF base class and helpers (Dolibarr v21+)
 // FR: Charger la classe de base PDF et helpers core (Dolibarr v21+)
 dol_include_once('/core/modules/modules_pdf.php');
+dol_include_once('/core/modules/rgwarranty/modules_rgwarranty.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/company.lib.php');
 dol_include_once('/core/lib/date.lib.php');
@@ -36,21 +37,35 @@ require_once dol_buildpath('/rgwarranty/lib/rgwarranty.lib.php', 0);
 
 // EN: Track if base PDF class is available
 // FR: Suivre la disponibilité de la classe PDF de base
-$rgwarrantyPdfBaseLoaded = class_exists('ModelePDF');
+$rgwarrantyPdfBaseLoaded = class_exists('ModelePDFRgwarranty');
 
 // EN: Fallback to avoid fatal if base class is missing
 // FR: Fallback pour éviter un fatal si la classe de base manque
 if (!$rgwarrantyPdfBaseLoaded) {
-	class ModelePDF
+	class ModelePDFRgwarranty
 	{
 		public $error = '';
+
+		/**
+		 * Return list of available document models.
+		 *
+		 * @param	DoliDB	$db		Database handler
+		 * @param	int		$max	Maximum number of models
+		 * @return	array|int			List of models or <0 on error
+		 */
+		public static function liste_modeles($db, $max = 0)
+		{
+			// EN: Return list of models for modulepart rgwarranty
+			// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+			return getListOfModels($db, 'rgwarranty', $max);
+		}
 	}
 }
 
 /**
  * PDF model class
  */
-class pdf_rgrequest extends ModelePDF
+class pdf_rgrequest extends ModelePDFRgwarranty
 {
 	/**
 	 * @var DoliDB Database handler

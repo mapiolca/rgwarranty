@@ -23,6 +23,7 @@ RGWSetReception=Abnahme erfassen
 RGWRequest=Rückbehalt anfordern
 RGWReminder=Erinnerung senden
 RGWPayment=RG-Zahlung erfassen
+RGWDocuments=RG-Dokumente
 RGWTimeline=Zyklusverlauf
 RGWRequestPdfModel=RG-Anforderungsbrief
 RGWRequestLetterTitle=Anforderung Gewährleistungsrückbehalt

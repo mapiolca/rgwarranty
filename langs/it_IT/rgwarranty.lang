@@ -23,6 +23,7 @@ RGWSetReception=Registrare ricezione
 RGWRequest=Richiedere restituzione RG
 RGWReminder=Inviare sollecito
 RGWPayment=Registrare pagamento RG
+RGWDocuments=Documenti RG
 RGWTimeline=Cronologia ciclo
 RGWRequestPdfModel=Richiesta restituzione RG
 RGWRequestLetterTitle=Richiesta restituzione ritenuta di garanzia
