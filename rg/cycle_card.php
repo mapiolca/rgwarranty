@@ -370,7 +370,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	$tooltipAfterComboOfModels = '';
 
 	print $formfile->showdocuments(
-		'rgw_cycle',
+		'rgwarranty',
 		$filename,
 		$filedir,
 		$urlsource,
