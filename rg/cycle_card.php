@@ -364,7 +364,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	// Generated documents
 	$filename = dol_sanitizeFileName($object->ref);
 	$filedir = $conf->rgwarranty->multidir_output[$object->entity ?? $conf->entity].'/'.dol_sanitizeFileName($object->ref);
-	$urlsource = $_SERVER['PHP_SELF'].'?facid='.$object->id;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $usercanread;
 	$delallowed = $usercancreate;
 	$tooltipAfterComboOfModels = '';
