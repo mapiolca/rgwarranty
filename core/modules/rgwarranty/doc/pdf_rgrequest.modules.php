@@ -23,16 +23,15 @@
 
 // EN: Load core PDF base class and helpers (Dolibarr v21+)
 // FR: Charger la classe de base PDF et helpers core (Dolibarr v21+)
-dol_include_once('/core/modules/modules_pdf.php');
-dol_include_once('/core/modules/rgwarranty/modules_rgwarranty.php');
-dol_include_once('/core/lib/pdf.lib.php');
-dol_include_once('/core/lib/company.lib.php');
-dol_include_once('/core/lib/date.lib.php');
-dol_include_once('/core/lib/functions2.lib.php');
-dol_include_once('/core/lib/files.lib.php');
-dol_include_once('/societe/class/societe.class.php');
-dol_include_once('/projet/class/project.class.php');
-dol_include_once('/compta/facture/class/facture.class.php');
+require_once DOL_DOCUMENT_ROOT.'/core/modules/rgwarranty/modules_rgwarranty.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once dol_buildpath('/rgwarranty/lib/rgwarranty.lib.php', 0);
 
 // EN: Track if base PDF class is available
