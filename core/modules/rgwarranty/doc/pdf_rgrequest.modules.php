@@ -23,7 +23,7 @@
 
 // EN: Load core PDF base class and helpers (Dolibarr v21+)
 // FR: Charger la classe de base PDF et helpers core (Dolibarr v21+)
-dol_include_once('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php');
+dol_include_once('/custom/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
