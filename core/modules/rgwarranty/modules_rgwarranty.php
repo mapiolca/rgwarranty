@@ -26,11 +26,12 @@
 dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/files.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
 
 /**
  * PDF model handler for RG Warranty.
  */
-class ModelePDFRgw_cycle extends ModelePDF
+class ModelePDFRgw_cycle extends CommonDocGenerator
 {
 	/**
 	 * @var DoliDB Database handler
