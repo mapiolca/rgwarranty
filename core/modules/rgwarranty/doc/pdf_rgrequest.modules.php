@@ -113,7 +113,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$outputlangs->loadLangs(array('main', 'companies', 'projects', 'bills', 'rgwarranty@rgwarranty'));
 
 		$ref = dol_sanitizeFileName($object->ref);
-		$dir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$ref;
+		$dir = $conf->rgwarranty->multidir_output[$entity].'/'.$object->element.'/'.$ref ;//$conf->rgwarranty->dir_output.'/'.$object->element.'/'.$ref;
 		$file = $dir.'/'.$ref.'.pdf';
 
 		if (!dol_mkdir($dir)) {
