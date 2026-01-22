@@ -65,7 +65,7 @@ if (!$rgwarrantyPdfBaseLoaded) {
 /**
  * PDF model class
  */
-class pdf_rgrequest extends ModelePDFRgw_cycle //Rgwarranty
+class pdf_rgrequest extends ModelePDFRgwarranty
 {
 	/**
 	 * @var DoliDB Database handler
