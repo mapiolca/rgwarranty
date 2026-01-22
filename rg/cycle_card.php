@@ -369,6 +369,10 @@ if ($action != 'prerelance' && $action != 'presend') {
 	$delallowed = $usercancreate;
 	$tooltipAfterComboOfModels = '';
 
+	$model = GETPOST('model', 'alpha');
+	if (empty($model)) $model = getDolGlobalString('RGWARRANTY_PDF_MODEL'); // ou le nom de constante que tu utilises
+
+
 	print $formfile->showdocuments(
 		'rgwarranty',
 		$filename,
