@@ -23,7 +23,7 @@
 
 // EN: Load core PDF base class and helpers (Dolibarr v21+)
 // FR: Charger la classe de base PDF et helpers core (Dolibarr v21+)
-dol_include_once('/core/modules/rgwarranty/modules_rgwarranty.php');
+dol_include_once('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
@@ -34,30 +34,22 @@ require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once dol_buildpath('/rgwarranty/lib/rgwarranty.lib.php', 0);
 
-// EN: Track if base PDF class is available
-// FR: Suivre la disponibilité de la classe PDF de base
-$rgwarrantyPdfBaseLoaded = class_exists('ModelePDFRgwarranty');
+class ModelePDFRgwarranty
+{
+	public $error = '';
 
-// EN: Fallback to avoid fatal if base class is missing
-// FR: Fallback pour éviter un fatal si la classe de base manque
-if (!$rgwarrantyPdfBaseLoaded) {
-	class ModelePDFRgwarranty
+	/**
+	 * Return list of available document models.
+	 *
+	 * @param	DoliDB	$db		Database handler
+	 * @param	int		$max	Maximum number of models
+	 * @return	array|int			List of models or <0 on error
+	 */
+	public static function liste_modeles($db, $max = 0)
 	{
-		public $error = '';
-
-		/**
-		 * Return list of available document models.
-		 *
-		 * @param	DoliDB	$db		Database handler
-		 * @param	int		$max	Maximum number of models
-		 * @return	array|int			List of models or <0 on error
-		 */
-		public static function liste_modeles($db, $max = 0)
-		{
-			// EN: Return list of models for modulepart rgwarranty
-			// FR: Retourner la liste des modèles pour le modulepart rgwarranty
-			return getListOfModels($db, 'rgwarranty', $max);
-		}
+		// EN: Return list of models for modulepart rgwarranty
+		// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+		return getListOfModels($db, 'rgwarranty', $max);
 	}
 }
 
@@ -115,14 +107,6 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 	{
 		global $conf, $user, $mysoc;
-
-		// EN: Stop if base PDF class is unavailable
-		// FR: Stopper si la classe PDF de base est indisponible
-		global $rgwarrantyPdfBaseLoaded;
-		if (empty($rgwarrantyPdfBaseLoaded)) {
-			$this->error = $outputlangs->trans('RGWMissingPdfBaseClass');
-			return 0;
-		}
 
 		// EN: Load translations for PDF
 		// FR: Charger les traductions pour le PDF
