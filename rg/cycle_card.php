@@ -244,7 +244,7 @@ $morehtmlref .= '</div>';
 
 $linkback = '<a href="'.dol_buildpath('/rgwarranty/rg/index.php', 1).'">'.$langs->trans('BackToList').'</a>';
 
-dol_banner_tab($object, 'ref', $linkback, 1, 'rowid', 'ref', $morehtmlref, '', 0, '', '');
+dol_banner_tab($object, 'id', $linkback, 1, 'rowid', 'ref', $morehtmlref, '', 0, '', '');
 print '<div class="underbanner clearboth"></div>';
 
 $showactionsavailable = false;
