@@ -27,67 +27,69 @@ dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/files.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
 
-/**
- * PDF model handler for RG Warranty.
- */
-class ModelePDFRgwarranty extends CommonDocGenerator
-{
+if (!class_exists('ModelePDFRgwarranty', false)) {
 	/**
-	 * @var DoliDB Database handler
+	 * PDF model handler for RG Warranty.
 	 */
-	public $db;
-
-	/**
-	 * @var string Model name
-	 */
-	public $name;
-
-	/**
-	 * @var string Model description
-	 */
-	public $description;
-
-	/**
-	 * @var string Document type
-	 */
-	public $type;
-
-	/**
-	 * @var string Subdir for model lookup
-	 */
-	public $scandir;
-
-	/**
-	 * Return list of available document models.
-	 *
-	 * @param	DoliDB	$db		Database handler
-	 * @param	int		$max	Maximum number of models
-	 * @return	array|int			List of models or <0 on error
-	 */
-	public static function liste_modeles($db, $max = 0)
+	class ModelePDFRgwarranty extends CommonDocGenerator
 	{
-		// EN: Return list of models for modulepart rgwarranty
-		// FR: Retourner la liste des modèles pour le modulepart rgwarranty
-		return getListOfModels($db, 'rgwarranty', $max);
-	}
+		/**
+		 * @var DoliDB Database handler
+		 */
+		public $db;
 
-	/**
-	 * Constructor
-	 *
-	 * @param	DoliDB	$db	Database handler
-	 */
-	public function __construct($db)
-	{
-		global $langs;
+		/**
+		 * @var string Model name
+		 */
+		public $name;
 
-		// EN: Initialize model metadata
-		// FR: Initialiser les métadonnées du modèle
-		$this->db = $db;
-		$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
-		$this->name = 'rgw_cycle';
-		$this->description = $langs->trans('RGWDocuments');
-		$this->type = 'pdf';
-		$this->scandir = 'rgwarranty';
+		/**
+		 * @var string Model description
+		 */
+		public $description;
+
+		/**
+		 * @var string Document type
+		 */
+		public $type;
+
+		/**
+		 * @var string Subdir for model lookup
+		 */
+		public $scandir;
+
+		/**
+		 * Return list of available document models.
+		 *
+		 * @param	DoliDB	$db		Database handler
+		 * @param	int		$max	Maximum number of models
+		 * @return	array|int			List of models or <0 on error
+		 */
+		public static function liste_modeles($db, $max = 0)
+		{
+			// EN: Return list of models for modulepart rgwarranty
+			// FR: Retourner la liste des modèles pour le modulepart rgwarranty
+			return getListOfModels($db, 'rgwarranty', $max);
+		}
+
+		/**
+		 * Constructor
+		 *
+		 * @param	DoliDB	$db	Database handler
+		 */
+		public function __construct($db)
+		{
+			global $langs;
+
+			// EN: Initialize model metadata
+			// FR: Initialiser les métadonnées du modèle
+			$this->db = $db;
+			$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
+			$this->name = 'rgw_cycle';
+			$this->description = $langs->trans('RGWDocuments');
+			$this->type = 'pdf';
+			$this->scandir = 'rgwarranty';
+		}
+		
 	}
-	
 }
