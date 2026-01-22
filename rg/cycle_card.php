@@ -174,7 +174,9 @@ if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
 	$object->model_pdf = $model;
 	$result = $object->generateDocument($model, $langs, 0, 0, 0);
 	if ($result <= 0) {
-		setEventMessages($object->error, $object->errors, 'errors');
+		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
+			setEventMessages($object->error, $object->errors, 'errors');
+		}
 	}
 	$action = '';
 }
