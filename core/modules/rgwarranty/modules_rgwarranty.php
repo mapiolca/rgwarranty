@@ -58,6 +58,12 @@ if (!class_exists('ModelePDFRgwarranty', false)) {
 		 */
 		public $scandir;
 
+		public $format;
+		public $marge_left; 
+		public $marge_right; 
+		public $marge_top; 
+		public $marge_bottom;
+
 		/**
 		 * Return list of available document models.
 		 *
