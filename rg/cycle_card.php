@@ -364,9 +364,14 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<a name="builddoc"></a>'; // ancre
 
 	// Generated documents
-	$filename = dol_sanitizeFileName($object->ref);
-	var_dump($object->element);
-	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$object->element.'/'.$object->ref;
+	$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+	$ref = dol_sanitizeFileName($object->ref);
+	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
+	$filename = $relativepath;
+	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.($entity != $conf->entity ? '&entity='.$entity : '');
+	$moreparams = 'id='.$object->id.'&entity='.$entity;
 	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $usercanread;
 	$delallowed = $usercancreate;
