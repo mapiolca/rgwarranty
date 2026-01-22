@@ -133,7 +133,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		// EN: Company header
 		// FR: En-tête société
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 10);
-		$pdf->MultiCell(90, 4, pdfBuildAddress($outputlangs, $mysoc), 0, 'L');
+		$pdf->MultiCell(90, 4, pdf_build_address($outputlangs, $mysoc), 0, 'L');
 		$pdf->Ln(6);
 
 		$thirdparty = new Societe($this->db);
@@ -142,7 +142,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		}
 
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 10);
-		$pdf->MultiCell(90, 4, pdfBuildAddress($outputlangs, $thirdparty), 0, 'L');
+		$pdf->MultiCell(90, 4, pdf_build_address($outputlangs, $thirdparty), 0, 'L');
 		$pdf->Ln(6);
 
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), 'B', 12);
