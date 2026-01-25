@@ -332,12 +332,15 @@ foreach ($invoices as $invoice) {
 	// EN: Use fk_statut value from invoice object for correct status
 	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
 	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
+	$invoicestatuslabel = $invoice->getLibStatut(5);
 	if (function_exists('dol_print_invoice_status')) {
 		$invoicestatuslabel = dol_print_invoice_status($invoicestatus, 1);
 	} else {
 		$tmpinvoice = new Facture($db);
-		$tmpinvoice->statut = $invoicestatus;
-		$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
+		$tmpinvoice->status = $invoicestatus;        // <-- le bon champ
+		$tmpinvoice->statut = $invoicestatus;        // optionnel, pour compat/lecture
+		$invoicestatuslabel = $tmpinvoice->getLibStatut(5);
+
 	}
 	// EN: Avoid invalid dates for display
 	// FR: Éviter les dates invalides à l'affichage
