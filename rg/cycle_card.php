@@ -456,6 +456,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
 	// EN: Limit timeline to last events like core invoice card
 	// FR: Limiter l'historique aux derniers événements comme la fiche facture
+	$socid = !empty($object->fk_soc) ? (int) $object->fk_soc : 0;
 	$MAXEVENT = 10;
 
 	// EN: Provide shortcuts to full conversation and list
@@ -467,7 +468,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
 	// EN: Use native helper to show actions timeline
 	// FR: Utiliser le helper natif pour afficher l'historique des actions
-	$somethingshown = $formactions->showactions($object, 'rgw_cycle', $object->id, 1, '', $MAXEVENT, '', $morehtmlcenter);
+	$somethingshown = $formactions->showactions($object, 'rgw_cycle', $socid, 1, '', $MAXEVENT, '', $morehtmlcenter);
 	
 	print '</div></div>';
 }
