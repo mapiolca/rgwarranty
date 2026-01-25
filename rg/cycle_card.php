@@ -190,7 +190,8 @@ $totals = rgwarranty_get_cycle_totals($db, $object->id);
 llxHeader('', $langs->trans('RGWCycle'));
 
 $head = rgwarranty_cycle_prepare_head($object);
-print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
+//print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
+print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, $object->picto());
 
 // EN: Entity scope (multicompany)
 // FR: Périmètre entity (multicompany)
