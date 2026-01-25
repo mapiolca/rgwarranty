@@ -218,8 +218,8 @@ if ($resql) {
 	$num = $db->num_rows($resql);
 }
 
-print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, 'invoicing', $num, $nbtotalofrecords, 'title_generic');
-print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'bill', 0, $newcardbutton, '', $limit, 0, 0, 1);
+//print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, 'invoicing', $num, $nbtotalofrecords, 'title_generic');
+print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'invoicing', 0, $newcardbutton, '', $limit, 0, 0, 1);
 //print load_fiche_titre($title, '', 'invoicing');
 
 
