@@ -468,7 +468,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	// EN: Use native helper to show actions timeline
 	// FR: Utiliser le helper natif pour afficher l'historique des actions
 	var_dump($object->id);
-	$somethingshown = $formactions->showactions($object, 'rgw_cycle', $object->id, 1, '', $MAXEVENT, '', $morehtmlcenter);
+	$somethingshown = $formactions->showactions($object, 'rgw_cycle', '', 1, '', $MAXEVENT, '', $morehtmlcenter);
 	
 	print '</div></div>';
 }
