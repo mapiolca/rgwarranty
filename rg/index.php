@@ -242,8 +242,8 @@ print '</tr>';
 
 print '<tr class="liste_titre_filter">';
 print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth100" name="search_ref" value="'.dol_escape_htmltag($search_ref).'"></td>';
-print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth150" name="search_socid" value="'.dol_escape_htmltag($search_socid).'"></td>';
-//print '<td class="liste_titre_filter">'.$formcompany->select_company($search_socid, 'search_socid', '', 1, 0, 0, array(), 0, 'maxwidth200').'</td>';
+//print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth150" name="search_socid" value="'.dol_escape_htmltag($search_socid).'"></td>';
+print '<td class="liste_titre_filter">'.$formcompany->select_company($search_socid, 'search_socid', '', 1, 0, 0, array(), 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">'.$formproject->select_projects($search_project, 'search_project', 0, 0, 0, 1, 0, 0, 0, 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">';
 print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0, 1).'</div>';
