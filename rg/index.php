@@ -109,7 +109,7 @@ $formcompany = new FormCompany($db);
 $formproject = new FormProjets($db);
 
 //llxHeader('', $langs->trans('RGWCockpit'));
-print load_fiche_titre($langs->trans('RGWCockpit'), 1, 'invoicing');
+print load_fiche_titre($langs->trans('RGWCockpit'), '', 'invoicing');
 
 $sortfields = array(
 	'ref' => 'c.ref',
