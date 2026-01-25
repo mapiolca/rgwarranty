@@ -246,12 +246,12 @@ print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth100
 print '<td class="liste_titre_filter">'.$formcompany->select_company($search_socid, 'search_socid', '', 1, 0, 0, array(), 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">'.$formproject->select_projects($search_project, 'search_project', 0, 0, 0, 1, 0, 0, 0, 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">';
-print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0, 1).'</div>';
-print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_reception_end, 'search_date_reception_end', 0, 0, 1, '', 1, 0, 1).'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0);.'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_reception_end,   'search_date_reception_end',   0, 0, 1, '', 1, 0);.'</div>';
 print '</td>';
 print '<td class="liste_titre_filter">';
-print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_limit_start, 'search_date_limit_start', 0, 0, 1, '', 1, 0, 1).'</div>';
-print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_limit_end, 'search_date_limit_end', 0, 0, 1, '', 1, 0, 1).'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_limit_start,     'search_date_limit_start',     0, 0, 1, '', 1, 0);.'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_limit_end,       'search_date_limit_end',       0, 0, 1, '', 1, 0);.'</div>';
 print '</td>';
 print '<td class="liste_titre_filter"></td>';
 print '<td class="liste_titre_filter"></td>';
