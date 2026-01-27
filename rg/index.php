@@ -272,6 +272,7 @@ if ($resql) {
 			$remaining = price2num($obj->rg_remaining_ttc, 'MT');
 
 			print '<tr class="oddeven">';
+			print '<td></td>';
 			print '<td><a href="'.dol_buildpath('/rgwarranty/rg/cycle_card.php', 1).'?id='.$obj->rowid.'">'.dol_escape_htmltag($obj->ref).'</a></td>';
 			print '<td>';
 			if (!empty($obj->fk_soc)) {
