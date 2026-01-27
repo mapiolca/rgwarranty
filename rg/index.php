@@ -229,6 +229,7 @@ print '<input type="hidden" name="sortorder" value="'.dol_escape_htmltag($sortor
 print '<div class="div-table-responsive">';
 print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
+print '<td class="liste_titre"></td>';
 print_liste_field_titre($langs->trans('RGWCycleRef'), $_SERVER['PHP_SELF'], 'ref', $param, '', '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER['PHP_SELF'], 'socname', $param, '', '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Project'), $_SERVER['PHP_SELF'], 'project_ref', $param, '', '', $sortfield, $sortorder);
