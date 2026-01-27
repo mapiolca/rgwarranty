@@ -97,6 +97,7 @@ class RGCycle extends CommonObject
 	public $fk_user_modif;
 	public $datec;
 	public $tms;
+	public $model_pdf;
 
 	/**
 	 * Constructor
@@ -246,6 +247,23 @@ class RGCycle extends CommonObject
 		}
 
 		return $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+	}
+
+	/**
+	 * Set document model (without DB update).
+	 *
+	 * @param	User		$user		User
+	 * @param	string		$model		Model
+	 * @param	Translate	$outputlangs	Output langs
+	 * @param	int			$forceupdate	Force update
+	 * @return	int						>0 if ok
+	 */
+	public function setDocModel($user, $model, $outputlangs = '', $forceupdate = 0)
+	{
+		// EN: Store model in memory only to avoid missing DB column
+		// FR: Stocker le modèle en mémoire uniquement pour éviter une colonne DB manquante
+		$this->model_pdf = $model;
+		return 1;
 	}
 
 	/**
