@@ -241,6 +241,7 @@ print_liste_field_titre($langs->trans('Actions'), $_SERVER['PHP_SELF'], '', $par
 print '</tr>';
 
 print '<tr class="liste_titre_filter">';
+print '<td class="liste_titre_filter center">'.$form->showFilterAndCheckAddButtons(0, 0, 1).'</td>';
 print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth100" name="search_ref" value="'.dol_escape_htmltag($search_ref).'"></td>';
 //print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth150" name="search_socid" value="'.dol_escape_htmltag($search_socid).'"></td>';
 print '<td class="liste_titre_filter">'.$formcompany->select_company($search_socid, 'search_socid', '', 1, 0, 0, array(), 0, 'maxwidth200').'</td>';
@@ -260,7 +261,6 @@ print '<td class="liste_titre_filter"></td>';
 print '<td class="liste_titre_filter">';
 print $form->selectarray('search_status', array('' => '', 0 => $langs->trans('RGWStatusDraft'), 1 => $langs->trans('RGWStatusInProgress'), 2 => $langs->trans('RGWStatusToRequest'), 3 => $langs->trans('RGWStatusRequested'), 4 => $langs->trans('RGWStatusPartial'), 5 => $langs->trans('RGWStatusRefunded')), $search_status, 1, 0, 0, '', 0, 0, 0, '', 'flat');
 print '</td>';
-print '<td class="liste_titre_filter center">'.$form->showFilterAndCheckAddButtons(0, 0, 1).'</td>';
 print '</tr>';
 
 if ($resql) {
