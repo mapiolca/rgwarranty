@@ -250,7 +250,7 @@ print '<td class="liste_titre_filter">'.$formcompany->select_company($search_soc
 $socidforproject = ($search_socid > 0 ? (int) $search_socid : -1);
 //print '<td class="liste_titre_filter">'.$formproject->select_projects($socidforproject, $search_project, 'search_project', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">';
-print '<div>'.$formproject->select_projects($socidforproject, $search_project, 'search_project', 0, 0, 0, 0, 0, 0, 0, '', 0, 0, 'maxwidth200').'</div></td>';
+print '<div>'.$formproject->select_projects($socidforproject, $search_project, 'search_project', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth200').'</div></td>';
 print '<td class="liste_titre_filter">';
 print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0).'</div>';
 print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_reception_end,   'search_date_reception_end', 0, 0, 1, '', 1, 0).'</div>';
@@ -307,7 +307,7 @@ if ($resql) {
 		}
 	} else {
 		print '<tr class="oddeven">';
-		print '<td colspan="9"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td>';
+		print '<td colspan="10"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td>';
 		print '</tr>';
 	}
 }
