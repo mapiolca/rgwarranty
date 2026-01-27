@@ -209,9 +209,10 @@ class RGCycle extends CommonObject
 	 * @param	int			$hidedetails	Hide details
 	 * @param	int			$hidedesc	Hide desc
 	 * @param	int			$hideref		Hide ref
+	 * @param	mixed		$moreparams		More parameters
 	 * @return	int						>0 if ok
 	 */
-	public function generateDocument($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+	public function generateDocument($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
 	{
 		global $langs;
 

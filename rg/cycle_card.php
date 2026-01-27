@@ -173,6 +173,13 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
+// EN: Keep selected PDF model in memory for builddoc flow
+// FR: Conserver le modèle PDF sélectionné en mémoire pour le flux builddoc
+if ($permissiontowrite && GETPOST('model', 'alpha')) {
+	$object->setDocModel($user, GETPOST('model', 'alpha'));
+	$object->model_pdf = GETPOST('model', 'alpha');
+}
+
 // EN: Ensure a default PDF model is set for the document combo
 // FR: S'assurer qu'un modèle PDF par défaut est défini pour la liste des documents
 if (empty($object->model_pdf)) {
