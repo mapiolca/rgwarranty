@@ -96,7 +96,7 @@ if (empty($object->id)) {
 $entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
 $ref = dol_sanitizeFileName($object->ref);
 $relativepath = $object->element.'/'.$ref;
-$upload_dir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+$upload_dir = $conf->rgwarranty->multidir_output[$entity];
 $filedir = $upload_dir;
 $filename = $relativepath;
 $modulepart = 'rgwarranty';
@@ -212,7 +212,7 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
-$cycleFileDir = $filedir;
+$cycleFileDir = $filedir.'/'.$filename;
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
