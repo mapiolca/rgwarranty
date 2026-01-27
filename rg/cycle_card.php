@@ -71,18 +71,13 @@ $permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'rea
 $permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
 $permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
-// EN: Map permissions for document generation/deletion
-// FR: Mapper les permissions pour la génération/suppression de documents
-$usercanread = $permissiontoread;
-$usercancreate = $permissiontowrite;
-
 if (!$permissiontoread) {
 	accessforbidden();
 }
 
 // EN: Prevent actions without rights
 // FR: Bloquer les actions sans droits
-$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend');
+$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend', 'builddoc', 'remove_file', 'confirm_deletefile');
 if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
 	accessforbidden();
 }
@@ -95,6 +90,19 @@ if ($id > 0) {
 if (empty($object->id)) {
 	accessforbidden();
 }
+
+// EN: Prepare document variables once (core-compatible)
+// FR: Préparer les variables documents une seule fois (compatible core)
+$entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
+$ref = dol_sanitizeFileName($object->ref);
+$relativepath = $object->element.'/'.$ref;
+$upload_dir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+$filedir = $upload_dir;
+$filename = $relativepath;
+$modulepart = 'rgwarranty';
+$permissiontoadd = $permissiontowrite;
+$permissiontodelete = $permissiontowrite;
+$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
 
 $form = new Form($db);
 $formcompany = new FormCompany($db);
@@ -164,21 +172,13 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
-// EN: Generate document from selected model
-// FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) {
-		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
-	}
-	$object->model_pdf = $model;
-	$result = $object->generateDocument($model, $langs, 0, 0, 0);
-	if ($result <= 0) {
-		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
-			setEventMessages($object->error, $object->errors, 'errors');
-		}
-	}
-	$action = '';
+// EN: Use core handlers for builddoc/remove_file actions
+// FR: Utiliser les gestionnaires core pour builddoc/remove_file
+if ($reshook == 0) {
+	$outputlangs = $langs;
+	$upload_dir = $filedir;
+	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
 }
 
 // EN: Sync cycle lines
@@ -191,9 +191,6 @@ llxHeader('', $langs->trans('RGWCycle'));
 
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
-// EN: Entity scope (multicompany)
-// FR: Périmètre entity (multicompany)
-$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
 // EN: Prepare Thirdparty / Project labels for banner
 // FR: Préparer les libellés Tiers / Projet pour la bannière
@@ -215,9 +212,7 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
-$ref = dol_sanitizeFileName($object->ref);
-$relativepath = $object->element.'/'.$ref; // ex: rgw_cycle/RGW-3
-$cycleFileDir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+$cycleFileDir = $filedir;
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
@@ -410,25 +405,13 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<a name="builddoc"></a>'; // ancre
 
 	// Generated documents
-	$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
-
-	$ref = dol_sanitizeFileName($object->ref);
-	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
-	$filename = $relativepath;
-	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-	$moreparams = 'id='.$object->id.'&entity='.$entity;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
-	$genallowed = $usercanread;
-	$delallowed = $usercancreate;
+	$genallowed = $permissiontowrite;
+	$delallowed = $permissiontowrite;
 	$tooltipAfterComboOfModels = '';
-
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) $model = getDolGlobalString('RGWARRANTY_PDF_MODEL'); // ou le nom de constante que tu utilises
 
 
 	print $formfile->showdocuments(
-		'rgwarranty',
+		$modulepart,
 		$filename,
 		$filedir,
 		$urlsource,
@@ -447,7 +430,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file_confirm',
+		'remove_file',
 		$tooltipAfterComboOfModels
 	);
 
