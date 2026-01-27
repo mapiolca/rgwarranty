@@ -71,13 +71,18 @@ $permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'rea
 $permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
 $permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
+// EN: Map permissions for document generation/deletion
+// FR: Mapper les permissions pour la génération/suppression de documents
+$usercanread = $permissiontoread;
+$usercancreate = $permissiontowrite;
+
 if (!$permissiontoread) {
 	accessforbidden();
 }
 
 // EN: Prevent actions without rights
 // FR: Bloquer les actions sans droits
-$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend', 'builddoc', 'remove_file', 'confirm_deletefile');
+$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend', 'builddoc', 'remove_file', 'deletefile', 'confirm_deletefile', 'addfile', 'send');
 if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
 	accessforbidden();
 }
@@ -91,19 +96,6 @@ if (empty($object->id)) {
 	accessforbidden();
 }
 
-// EN: Prepare document variables once (core-compatible)
-// FR: Préparer les variables documents une seule fois (compatible core)
-$entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
-$ref = dol_sanitizeFileName($object->ref);
-$relativepath = $object->element.'/'.$ref;
-$upload_dir = $conf->rgwarranty->multidir_output[$entity];
-$filedir = $upload_dir.'/'.$relativepath;
-$filename = $relativepath;
-$modulepart = 'rgwarranty';
-$permissiontoadd = $permissiontowrite;
-$permissiontodelete = $permissiontowrite;
-$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-
 $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formfile = new FormFile($db);
@@ -113,10 +105,6 @@ $formactions = new FormActions($db);
 // FR: Initialiser les hooks pour la fiche cycle
 $hookmanager = new HookManager($db);
 $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
-
-// EN: Load document driver for module
-// FR: Charger le driver documents du module
-//dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
 
 $error = 0;
 
@@ -172,48 +160,103 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
-// EN: Use core handlers for builddoc/remove_file actions
-// FR: Utiliser les gestionnaires core pour builddoc/remove_file
-if ($reshook == 0) {
-	$outputlangs = $langs;
-	$upload_dir = $filedir;
-	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
-	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+// EN: Documents (PDF generation/deletion) - reuse Dolibarr core actions for stability
+// FR: Documents (génération/suppression PDF) - réutiliser les actions core Dolibarr pour fiabiliser
+$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+// EN: Determine base output directory for module (multicompany aware)
+// FR: Déterminer le répertoire de sortie du module (compatible multicompany)
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
 }
 
-// Confirm modals
-	if ($action === 'deletefile') {
-		// EN: Ask for confirmation before delegating the deletion to Dolibarr core.
-		// FR: Demande une confirmation avant de déléguer la suppression au cœur de Dolibarr.
-		$urlfileForConfirm = GETPOST('urlfile', 'alphanohtml', 0, null, null, 1);
-		// EN: Keep track of the file parameter required by the document workflow.
-		// FR: Conserve le paramètre file requis par le workflow documentaire.
-		$confirmFileParam = GETPOST('file', 'alphanohtml', 0, null, null, 1);
-		$linkIdForConfirm = GETPOSTINT('linkid');
-		$confirmUrl = $_SERVER["PHP_SELF"].'?id='.$object->id;
-		if ($urlfileForConfirm !== '') {
-			$confirmUrl .= '&urlfile='.urlencode($urlfileForConfirm);
-		}
-		if ($confirmFileParam === '' && !empty($object->ref)) {
-			$confirmFileParam = dol_sanitizeFileName($object->ref).'.pdf';
-		}
-		if ($confirmFileParam !== '') {
-			$confirmUrl .= '&file='.urlencode($confirmFileParam);
-		}
-		if ($linkIdForConfirm > 0) {
-			$confirmUrl .= '&linkid='.$linkIdForConfirm;
-		}
-		$formconfirm = $form->formconfirm(
-			$confirmUrl,
-			$langs->trans('DeleteFile'),
-			$langs->trans('ConfirmDeleteFile'),
-			'confirm_deletefile',
-			array(),
-			'yes',
-			1
-		);
-		print $formconfirm;
+// EN: Build relative path for object documents. Fallback to known object type when element is empty.
+// FR: Construire le chemin relatif des documents. Repli sur le type objet connu si element est vide.
+$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
+$docRef = dol_sanitizeFileName($object->ref);
+$relativepath = $docElement.'/'.$docRef;
+$upload_dir = rtrim($baseOutput, '/').'/'.$relativepath;
+
+// EN: Map doc permissions (create/delete)
+// FR: Mapper les permissions doc (création/suppression)
+$permissiontoadd = ($permissiontowrite ? 1 : 0);
+
+// EN: Persist chosen PDF model when user is allowed to change it
+// FR: Enregistrer le modèle PDF choisi quand l'utilisateur a le droit de le changer
+if (!empty($permissiontoadd) && GETPOST('model', 'alpha')) {
+	$selectedModel = GETPOST('model', 'alpha');
+	if (method_exists($object, 'setDocModel')) {
+		$object->setDocModel($user, $selectedModel);
 	}
+	$object->model_pdf = $selectedModel;
+}
+
+if (empty($object->model_pdf)) {
+	$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+}
+
+// EN: Parameters preserved in document actions
+// FR: Paramètres conservés dans les actions documents
+$moreparams = array(
+	'id' => $object->id,
+	'entity' => $docEntityId,
+);
+
+// EN: Core handler for builddoc (PDF generation/regeneration)
+// FR: Handler core pour builddoc (génération/régénération PDF)
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
+// EN: Translate remove_file to deletefile to reuse core linkedfiles workflow
+// FR: Transformer remove_file en deletefile pour réutiliser le flux core des fichiers liés
+if ($action === 'remove_file') {
+	if (empty($permissiontoadd)) {
+		setEventMessages($langs->trans('NotEnoughPermissions'), null, 'errors');
+		$action = '';
+	} else {
+		$requestedFile = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		$requestedFile = dol_sanitizeFileName(basename((string) $requestedFile));
+		if ($requestedFile !== '') {
+			$_GET['file'] = $requestedFile;
+			$_REQUEST['file'] = $requestedFile;
+			$_GET['urlfile'] = $requestedFile;
+			$_REQUEST['urlfile'] = $requestedFile;
+			$action = 'deletefile';
+		} else {
+			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
+			$action = '';
+		}
+	}
+}
+
+// EN: Core handler for attachment upload/deletion within upload_dir
+// FR: Handler core pour ajout/suppression de fichiers dans upload_dir
+if (!empty($upload_dir)) {
+	$modulepart = 'rgwarranty';
+	$permissiontoread_doc = ($permissiontoread ? 1 : 0);
+	$permissiontoadd_doc = ($permissiontoadd ? 1 : 0);
+	$permissiontodownload = $permissiontoread_doc;
+	$permissiontodelete = $permissiontoadd_doc;
+
+	// EN: Dolibarr core expects these variable names
+	// FR: Le core Dolibarr attend ces noms de variables
+	$permissiontoread_tmp = $permissiontoread;
+	$permissiontoadd_tmp = $permissiontoadd;
+
+	$permissiontoread = $permissiontoread_doc;
+	$permissiontoadd = $permissiontoadd_doc;
+
+	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+
+	// EN: Restore original variables used by the page
+	// FR: Restaurer les variables originales utilisées par la page
+	$permissiontoread = $permissiontoread_tmp;
+	$permissiontoadd = $permissiontoadd_tmp;
+}
 
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
@@ -225,6 +268,10 @@ llxHeader('', $langs->trans('RGWCycle'));
 
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
+
+// EN: Entity scope (multicompany)
+// FR: Périmètre entity (multicompany)
+$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
 // EN: Prepare Thirdparty / Project labels for banner
 // FR: Préparer les libellés Tiers / Projet pour la bannière
@@ -246,7 +293,19 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
-$cycleFileDir = $filedir;
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$entity])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$entity];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+}
+
+$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
+$ref = dol_sanitizeFileName($object->ref);
+$relativepath = $docElement.'/'.$ref; // ex: rgw_cycle/RGW-3
+$cycleFileDir = rtrim($baseOutput, '/').'/'.$relativepath;
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
@@ -298,10 +357,6 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 print '<div class="fichecenter">';
 print '<div class="fichehalfleft">';
 print '<table class="border centpercent tableforfield">';
-//print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWLimitDate').'</td><td>'.dol_print_date($object->date_limit, 'day').'</td></tr>';
 print '</table>';
@@ -359,8 +414,6 @@ foreach ($invoices as $invoice) {
 	// EN: Build invoice status label with fallback when helper function is missing
 	// FR: Construire le libellé de statut avec repli si la fonction helper manque
 	$invoicestatuslabel = '';
-	// EN: Use fk_statut value from invoice object for correct status
-	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
 	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
 	$invoicestatuslabel = $invoice->getLibStatut(5);
 
@@ -435,73 +488,4 @@ if ($action != 'presend') {
 }
 
 if ($action != 'prerelance' && $action != 'presend') {
-	print '<div class="fichecenter"><div class="fichehalfleft">';
-	print '<a name="builddoc"></a>'; // ancre
-
-	// Generated documents
-	$genallowed = $permissiontowrite;
-	$delallowed = $permissiontowrite;
-	$tooltipAfterComboOfModels = '';
-
-
-	print $formfile->showdocuments(
-		$modulepart,
-		$filename,
-		$filedir,
-		$urlsource,
-		$genallowed,
-		(int) $delallowed,
-		$object->model_pdf,
-		1,
-		0,
-		0,
-		28,
-		0,
-		'',
-		'',
-		'',
-		$soc->default_lang,
-		'',
-		$object,
-		0,
-		'deletefile',
-		$tooltipAfterComboOfModels
-	);
-
-	$somethingshown = $formfile->numoffiles;
-	print '</div>';
-	print '<div class="fichehalfright">';
-
-	// EN: Limit timeline to last events like core invoice card
-	// FR: Limiter l'historique aux derniers événements comme la fiche facture
-	$MAXEVENT = 10;
-
-	// EN: Provide shortcuts to full conversation and list
-	// FR: Fournir des raccourcis vers la conversation et la liste complètes
-	$morehtmlcenter = '<div class="nowraponall">';
-	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
-	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
-	$morehtmlcenter .= '</div>';
-
-	// EN: Use native helper to show actions timeline
-	// FR: Utiliser le helper natif pour afficher l'historique des actions
-	$somethingshown = $formactions->showactions($object, 'rgw_cycle', '', 1, '', $MAXEVENT, '', $morehtmlcenter);
-	
-	print '</div></div>';
-}
-
-// EN: Presend mail form
-// FR: Formulaire d'envoi email
-if ($action == 'presend') {
-	$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REQUEST', 'rgwarranty_request');
-	if ($mailcontext == 'reminder') {
-		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
-	}
-	$defaulttopic = 'RGWRequestLetterTitle';
-	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element;
-	$trackid = 'rgwarranty'.$object->id;
-	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
-}
-
-llxFooter();
-$db->close();
+	pr
