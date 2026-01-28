@@ -91,7 +91,7 @@ if ($id > 0) {
 if (empty($object->id)) {
 	accessforbidden();
 }
-
+/*
 // EN: Prepare document variables once (core-compatible)
 // FR: Préparer les variables documents une seule fois (compatible core)
 $entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
@@ -104,7 +104,7 @@ $modulepart = 'rgwarranty';
 $permissiontoadd = $permissiontowrite;
 $permissiontodelete = $permissiontowrite;
 $urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-
+*/
 $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formfile = new FormFile($db);
