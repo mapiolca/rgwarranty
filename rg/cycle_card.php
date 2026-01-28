@@ -91,7 +91,7 @@ if ($id > 0) {
 if (empty($object->id)) {
 	accessforbidden();
 }
-/*
+
 // EN: Prepare document variables once (core-compatible)
 // FR: Préparer les variables documents une seule fois (compatible core)
 $entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
@@ -104,7 +104,7 @@ $modulepart = 'rgwarranty';
 $permissiontoadd = $permissiontowrite;
 $permissiontodelete = $permissiontowrite;
 $urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-*/
+
 $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formfile = new FormFile($db);
@@ -172,9 +172,6 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 		$action = 'presend';
 	}
 }
-
-// Action to build doc
-include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 
 // EN: Keep selected PDF model in memory for builddoc flow
 // FR: Conserver le modèle PDF sélectionné en mémoire pour le flux builddoc
@@ -477,20 +474,12 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<div class="fichecenter"><div class="fichehalfleft">';
 	print '<a name="builddoc"></a>'; // ancre
 
-		$includedocgeneration = 1;
+	// Generated documents
+	$genallowed = $permissiontowrite;
+	$delallowed = $permissiontowrite;
+	$tooltipAfterComboOfModels = '';
 
-		// Documents
-		if ($includedocgeneration) {
-			$objref = dol_sanitizeFileName($object->ref);
-			$relativepath = $objref.'/'.$objref.'.pdf';
-			$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref;
-			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
-			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
-			$delallowed = $permissiontoadd; // If you can create/edit, you can remove a file on card
-			print $formfile->showdocuments('rgwarranty:RGWarranty', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
-		}
 
-/*
 	print $formfile->showdocuments(
 		$modulepart,
 		$filename,
@@ -514,7 +503,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'remove_file',
 		$tooltipAfterComboOfModels
 	);
-*/
+
 	$somethingshown = $formfile->numoffiles;
 	print '</div>';
 	print '<div class="fichehalfright">';
