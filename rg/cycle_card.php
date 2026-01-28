@@ -117,7 +117,7 @@ $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 
 // EN: Load document driver for module
 // FR: Charger le driver documents du module
-//dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
+dol_include_once('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php');
 
 $error = 0;
 
@@ -205,6 +205,16 @@ if ($reshook == 0 && $action === 'remove_file') {
 			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
 			$action = '';
 		}
+	}
+}
+
+// EN: Ensure builddoc always has a valid model value
+// FR: Garantir qu'un modèle valide est fourni pour builddoc
+if ($action === 'builddoc') {
+	$requestedModel = GETPOST('model', 'alpha');
+	if ($requestedModel === '' || is_numeric($requestedModel)) {
+		$_POST['model'] = $object->model_pdf;
+		$_REQUEST['model'] = $object->model_pdf;
 	}
 }
 
