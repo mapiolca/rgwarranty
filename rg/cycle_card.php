@@ -173,6 +173,9 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
+// Action to build doc
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
 // EN: Keep selected PDF model in memory for builddoc flow
 // FR: Conserver le modèle PDF sélectionné en mémoire pour le flux builddoc
 if ($permissiontowrite && GETPOST('model', 'alpha')) {
