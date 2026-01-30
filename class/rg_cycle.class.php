@@ -229,6 +229,9 @@ class RGCycle extends CommonObject
 
 		$modelpath = dol_buildpath('/custom/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
 		if (!is_file($modelpath)) {
+			$modelpath = dol_buildpath('/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
+		}
+		if (!is_file($modelpath)) {
 			$this->error = $outputlangs->trans('ErrorFileDoesNotExists', $modelpath);
 			return -1;
 		}
