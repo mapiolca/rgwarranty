@@ -251,7 +251,7 @@ class RGCycle extends CommonObject
 		if ($result <= 0 && empty($this->error)) {
 			// EN: Provide a default error to avoid empty message stack
 			// FR: Fournir une erreur par défaut pour éviter un message vide
-			$this->error = $outputlangs->trans('ErrorFailedToGenerateFile');
+			$this->error = $outputlangs->trans('ErrorFailedToGenerateDocument');
 		}
 
 		return $result;

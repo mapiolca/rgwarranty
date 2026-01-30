@@ -66,3 +66,4 @@ RGWCronUpdateStatusComment=RG-Status anhand der Termine aktualisieren
 RGWMissingPdfBaseClass=Basisklasse PDF ist nicht verfügbar.
 RGWNoReceptionDate=Abnahmedatum nicht gesetzt
 RGWNoInvoiceForCycle=Keine Rechnung mit dem Zyklus verknüpft
+ErrorFailedToGenerateDocument=Fehler beim Erstellen des Dokuments.
