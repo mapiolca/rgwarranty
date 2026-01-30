@@ -247,7 +247,14 @@ class RGCycle extends CommonObject
 			return -1;
 		}
 
-		return $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+		$result = $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+		if ($result <= 0 && empty($this->error)) {
+			// EN: Provide a default error to avoid empty message stack
+			// FR: Fournir une erreur par défaut pour éviter un message vide
+			$this->error = $outputlangs->trans('ErrorFailedToGenerateFile');
+		}
+
+		return $result;
 	}
 
 	/**
