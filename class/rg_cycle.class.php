@@ -23,6 +23,7 @@
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 
 /**
  * Class for RG Cycle
@@ -300,6 +301,24 @@ class RGCycle extends CommonObject
 		}
 		$this->error = $this->db->lasterror();
 		return -1;
+	}
+
+	/**
+	 * Fetch thirdparty.
+	 *
+	 * @param	int	$socid	Thirdparty id
+	 * @return	int			>0 if ok
+	 */
+	public function fetch_thirdparty($socid = 0)
+	{
+		// EN: Load linked thirdparty for document generation
+		// FR: Charger le tiers lié pour la génération de documents
+		$this->thirdparty = new Societe($this->db);
+		$id = $socid ? (int) $socid : (int) $this->fk_soc;
+		if ($id > 0) {
+			return $this->thirdparty->fetch($id);
+		}
+		return 0;
 	}
 
 	/**
