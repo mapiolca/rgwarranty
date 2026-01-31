@@ -66,15 +66,11 @@ $langs->loadLangs(array('rgwarranty@rgwarranty', 'companies', 'projects', 'bills
 $id = GETPOSTINT('id');
 $action = GETPOST('action', 'aZ09');
 $mailcontext = GETPOST('mailcontext', 'alpha');
+$confirm = GETPOST('confirm', 'alpha');
 
 $permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'read'));
 $permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
 $permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
-
-// EN: Map permissions for document generation/deletion
-// FR: Mapper les permissions pour la génération/suppression de documents
-$usercanread = $permissiontoread;
-$usercancreate = $permissiontowrite;
 
 if (!$permissiontoread) {
 	accessforbidden();
@@ -82,7 +78,7 @@ if (!$permissiontoread) {
 
 // EN: Prevent actions without rights
 // FR: Bloquer les actions sans droits
-$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend');
+$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend', 'builddoc', 'remove_file', 'deletefile', 'confirm_deletefile');
 if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
 	accessforbidden();
 }
@@ -96,6 +92,26 @@ if (empty($object->id)) {
 	accessforbidden();
 }
 
+// EN: Prepare document variables once (core-compatible)
+// FR: Préparer les variables documents une seule fois (compatible core)
+$entity = (int) (!empty($object->entity) ? $object->entity : $conf->entity);
+$ref = dol_sanitizeFileName($object->ref);
+$relativepath = $object->element.'/'.$ref;
+$upload_dir = '';
+if (!empty($conf->rgwarranty->multidir_output[$entity])) {
+	$upload_dir = $conf->rgwarranty->multidir_output[$entity];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$upload_dir = $conf->rgwarranty->dir_output;
+} else {
+	$upload_dir = DOL_DATA_ROOT.'/rgwarranty';
+}
+$filedir = $upload_dir.'/'.$relativepath;
+$filename = $relativepath;
+$modulepart = 'rgwarranty';
+$permissiontoadd = $permissiontowrite;
+$permissiontodelete = $permissiontowrite;
+$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
+
 $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formfile = new FormFile($db);
@@ -108,7 +124,7 @@ $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 
 // EN: Load document driver for module
 // FR: Charger le driver documents du module
-//dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
+dol_include_once('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php');
 
 $error = 0;
 
@@ -164,21 +180,58 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
-// EN: Generate document from selected model
-// FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) {
-		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
-	}
-	$object->model_pdf = $model;
-	$result = $object->generateDocument($model, $langs, 0, 0, 0);
-	if ($result <= 0) {
-		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
-			setEventMessages($object->error, $object->errors, 'errors');
+// EN: Keep selected PDF model in memory for builddoc flow
+// FR: Conserver le modèle PDF sélectionné en mémoire pour le flux builddoc
+if ($permissiontowrite && GETPOST('model', 'alpha')) {
+	$object->setDocModel($user, GETPOST('model', 'alpha'));
+	$object->model_pdf = GETPOST('model', 'alpha');
+}
+
+// EN: Ensure a default PDF model is set for the document combo
+// FR: S'assurer qu'un modèle PDF par défaut est défini pour la liste des documents
+if (empty($object->model_pdf)) {
+	$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+}
+
+// EN: Normalize remove_file action to use confirmation and sanitized basename
+// FR: Normaliser l'action remove_file avec confirmation et basename assaini
+if ($reshook == 0 && $action === 'remove_file') {
+	if (empty($permissiontowrite)) {
+		setEventMessages($langs->trans('NotEnoughPermissions'), null, 'errors');
+		$action = '';
+	} else {
+		$requestedFile = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		$requestedFile = dol_sanitizeFileName(basename((string) $requestedFile));
+		if ($requestedFile !== '') {
+			$_GET['file'] = $requestedFile;
+			$_REQUEST['file'] = $requestedFile;
+			$_GET['urlfile'] = $requestedFile;
+			$_REQUEST['urlfile'] = $requestedFile;
+			$action = 'deletefile';
+		} else {
+			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
+			$action = '';
 		}
 	}
-	$action = '';
+}
+
+// EN: Ensure builddoc always has a valid model value
+// FR: Garantir qu'un modèle valide est fourni pour builddoc
+if ($action === 'builddoc') {
+	$requestedModel = GETPOST('model', 'alpha');
+	if ($requestedModel === '' || is_numeric($requestedModel)) {
+		$_POST['model'] = $object->model_pdf;
+		$_REQUEST['model'] = $object->model_pdf;
+	}
+}
+
+// EN: Use core handlers for builddoc/remove_file actions
+// FR: Utiliser les gestionnaires core pour builddoc/remove_file
+if ($reshook == 0) {
+	$outputlangs = $langs;
+	$upload_dir = $filedir;
+	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
 }
 
 // EN: Sync cycle lines
@@ -191,9 +244,6 @@ llxHeader('', $langs->trans('RGWCycle'));
 
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
-// EN: Entity scope (multicompany)
-// FR: Périmètre entity (multicompany)
-$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
 // EN: Prepare Thirdparty / Project labels for banner
 // FR: Préparer les libellés Tiers / Projet pour la bannière
@@ -215,9 +265,7 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
-$ref = dol_sanitizeFileName($object->ref);
-$relativepath = $object->element.'/'.$ref; // ex: rgw_cycle/RGW-3
-$cycleFileDir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+$cycleFileDir = $filedir;
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
@@ -246,6 +294,30 @@ $morehtmlstatus = '';
 
 dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref, '', 0, '', $morehtmlstatus);
 print '<div class="underbanner clearboth"></div>';
+
+// EN: Confirmation dialog for document deletion
+// FR: Boîte de confirmation pour la suppression d'un document
+if ($action === 'deletefile') {
+	$urlfileForConfirm = GETPOST('urlfile', 'alphanohtml', 0, null, null, 1);
+	$confirmFileParam = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+	$confirmUrl = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
+	if ($urlfileForConfirm !== '') {
+		$confirmUrl .= '&urlfile='.urlencode($urlfileForConfirm);
+	}
+	if ($confirmFileParam !== '') {
+		$confirmUrl .= '&file='.urlencode($confirmFileParam);
+	}
+	$formconfirm = $form->formconfirm(
+		$confirmUrl,
+		$langs->trans('DeleteFile'),
+		$langs->trans('ConfirmDeleteFile'),
+		'confirm_deletefile',
+		array(),
+		'yes',
+		1
+	);
+	print $formconfirm;
+}
 
 $showactionsavailable = false;
 
@@ -410,25 +482,13 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<a name="builddoc"></a>'; // ancre
 
 	// Generated documents
-	$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
-
-	$ref = dol_sanitizeFileName($object->ref);
-	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
-	$filename = $relativepath;
-	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-	$moreparams = 'id='.$object->id.'&entity='.$entity;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
-	$genallowed = $usercanread;
-	$delallowed = $usercancreate;
+	$genallowed = $permissiontowrite;
+	$delallowed = $permissiontowrite;
 	$tooltipAfterComboOfModels = '';
-
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) $model = getDolGlobalString('RGWARRANTY_PDF_MODEL'); // ou le nom de constante que tu utilises
 
 
 	print $formfile->showdocuments(
-		'rgwarranty',
+		$modulepart,
 		$filename,
 		$filedir,
 		$urlsource,
@@ -447,7 +507,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file_confirm',
+		'remove_file',
 		$tooltipAfterComboOfModels
 	);
 

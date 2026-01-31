@@ -23,6 +23,7 @@
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 
 /**
  * Class for RG Cycle
@@ -97,6 +98,7 @@ class RGCycle extends CommonObject
 	public $fk_user_modif;
 	public $datec;
 	public $tms;
+	public $model_pdf;
 
 	/**
 	 * Constructor
@@ -208,9 +210,10 @@ class RGCycle extends CommonObject
 	 * @param	int			$hidedetails	Hide details
 	 * @param	int			$hidedesc	Hide desc
 	 * @param	int			$hideref		Hide ref
+	 * @param	mixed		$moreparams		More parameters
 	 * @return	int						>0 if ok
 	 */
-	public function generateDocument($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+	public function generateDocument($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
 	{
 		global $langs;
 
@@ -226,6 +229,9 @@ class RGCycle extends CommonObject
 		}
 
 		$modelpath = dol_buildpath('/custom/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
+		if (!is_file($modelpath)) {
+			$modelpath = dol_buildpath('/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
+		}
 		if (!is_file($modelpath)) {
 			$this->error = $outputlangs->trans('ErrorFileDoesNotExists', $modelpath);
 			return -1;
@@ -245,7 +251,31 @@ class RGCycle extends CommonObject
 			return -1;
 		}
 
-		return $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+		$result = $docmodel->write_file($this, $outputlangs, '', $hidedetails, $hidedesc, $hideref);
+		if ($result <= 0 && empty($this->error)) {
+			// EN: Provide a default error to avoid empty message stack
+			// FR: Fournir une erreur par défaut pour éviter un message vide
+			$this->error = $outputlangs->trans('ErrorFailedToGenerateDocument');
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Set document model (without DB update).
+	 *
+	 * @param	User		$user		User
+	 * @param	string		$model		Model
+	 * @param	Translate	$outputlangs	Output langs
+	 * @param	int			$forceupdate	Force update
+	 * @return	int						>0 if ok
+	 */
+	public function setDocModel($user, $model, $outputlangs = '', $forceupdate = 0)
+	{
+		// EN: Store model in memory only to avoid missing DB column
+		// FR: Stocker le modèle en mémoire uniquement pour éviter une colonne DB manquante
+		$this->model_pdf = $model;
+		return 1;
 	}
 
 	/**
@@ -271,6 +301,24 @@ class RGCycle extends CommonObject
 		}
 		$this->error = $this->db->lasterror();
 		return -1;
+	}
+
+	/**
+	 * Fetch thirdparty.
+	 *
+	 * @param	int	$socid	Thirdparty id
+	 * @return	int			>0 if ok
+	 */
+	public function fetch_thirdparty($socid = 0)
+	{
+		// EN: Load linked thirdparty for document generation
+		// FR: Charger le tiers lié pour la génération de documents
+		$this->thirdparty = new Societe($this->db);
+		$id = $socid ? (int) $socid : (int) $this->fk_soc;
+		if ($id > 0) {
+			return $this->thirdparty->fetch($id);
+		}
+		return 0;
 	}
 
 	/**

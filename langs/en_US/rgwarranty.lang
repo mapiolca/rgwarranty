@@ -66,3 +66,4 @@ RGWCronUpdateStatusComment=Update RG statuses based on dates
 RGWMissingPdfBaseClass=Base PDF class is unavailable.
 RGWNoReceptionDate=Reception date not set
 RGWNoInvoiceForCycle=No invoice linked to the cycle
+ErrorFailedToGenerateDocument=Failed to generate the document.
