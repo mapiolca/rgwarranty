@@ -164,21 +164,92 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
-// EN: Generate document from selected model
-// FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) {
-		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+// EN: Documents (generation/regeneration + deletion) using core helpers
+// FR: Documents (génération/régénération + suppression) via les helpers du core
+
+$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+// EN: Determine base output directory for module (multicompany aware)
+// FR: Déterminer le répertoire de sortie du module (compatible multicompany)
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+}
+
+$docRef = dol_sanitizeFileName($object->ref);
+
+// EN: Prefer legacy layout "<ref>/" but autodetect existing "<element>/<ref>/" when present.
+// FR: Préférer le layout historique "<ref>/" mais autodétecter "<element>/<ref>/" si déjà présent.
+$relativepath = $docRef;
+$upload_dir = rtrim($baseOutput, '/').'/'.$relativepath;
+
+if (!empty($object->element)) {
+	$altRelativePath = $object->element.'/'.$docRef;
+	$altFileDir = rtrim($baseOutput, '/').'/'.$altRelativePath;
+	if (is_dir($altFileDir) || file_exists($altFileDir.'/'.$docRef.'.pdf')) {
+		$relativepath = $altRelativePath;
+		$upload_dir = $altFileDir;
 	}
-	$object->model_pdf = $model;
-	$result = $object->generateDocument($model, $langs, 0, 0, 0);
-	if ($result <= 0) {
-		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
-			setEventMessages($object->error, $object->errors, 'errors');
+}
+
+// EN: Authorize doc generation/deletion only to users with write permission.
+// FR: Autoriser la génération/suppression uniquement aux utilisateurs avec droit d'écriture.
+$permissiontoadd = ($permissiontowrite ? 1 : 0);
+
+// EN: Persist selected model when user can change it.
+// FR: Enregistrer le modèle choisi si l'utilisateur peut le changer.
+if (!empty($permissiontoadd) && GETPOST('model', 'alpha')) {
+	if (method_exists($object, 'setDocModel')) {
+		$object->setDocModel($user, GETPOST('model', 'alpha'));
+	}
+	$object->model_pdf = GETPOST('model', 'alpha');
+}
+if (empty($object->model_pdf)) {
+	$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+}
+
+$moreparams = array('id' => $object->id, 'entity' => $docEntityId);
+
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
+// EN: Normalize remove_file to deletefile for confirmation workflow.
+// FR: Normaliser remove_file en deletefile pour le workflow de confirmation.
+if ($action === 'remove_file') {
+	if (empty($permissiontoadd)) {
+		setEventMessages($langs->trans('NotEnoughPermissions'), null, 'errors');
+		$action = '';
+	} else {
+		$requestedFile = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		if ($requestedFile === '' && !empty($object->ref)) {
+			$requestedFile = dol_sanitizeFileName($object->ref).'.pdf';
+		}
+		$requestedFile = dol_sanitizeFileName(basename((string) $requestedFile));
+		if ($requestedFile !== '') {
+			$_GET['file'] = $requestedFile;
+			$_REQUEST['file'] = $requestedFile;
+			$_GET['urlfile'] = $requestedFile;
+			$_REQUEST['urlfile'] = $requestedFile;
+			$action = 'deletefile';
+		} else {
+			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
+			$action = '';
 		}
 	}
-	$action = '';
+}
+
+if (!empty($upload_dir)) {
+	// EN: Use modulepart scope to let core delete/attach docs correctly.
+	// FR: Utiliser le modulepart pour que le core supprime/ajoute correctement les docs.
+	$modulepart = 'rgwarranty';
+	$permissiontoread = ($permissiontoread ? 1 : 0);
+	$permissiontoadd = ($permissiontoadd ? 1 : 0);
+	$permissiontodownload = $permissiontoread;
+	$permissiontodelete = $permissiontoadd;
+	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
 }
 
 // EN: Sync cycle lines
@@ -188,6 +259,36 @@ rgwarranty_sync_cycle_lines($db, $object, $invoices);
 $totals = rgwarranty_get_cycle_totals($db, $object->id);
 
 llxHeader('', $langs->trans('RGWCycle'));
+
+// EN: Confirmation box for deleting a document
+// FR: Boîte de confirmation pour la suppression d'un document
+if ($action === 'deletefile') {
+	$urlfileForConfirm = GETPOST('urlfile', 'alphanohtml', 0, null, null, 1);
+	$confirmFileParam = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+	$confirmUrl = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.(int) $docEntityId;
+
+	if ($urlfileForConfirm !== '') {
+		$confirmUrl .= '&urlfile='.urlencode($urlfileForConfirm);
+	}
+	if ($confirmFileParam === '' && !empty($object->ref)) {
+		$confirmFileParam = dol_sanitizeFileName($object->ref).'.pdf';
+	}
+	if ($confirmFileParam !== '') {
+		$confirmUrl .= '&file='.urlencode($confirmFileParam);
+	}
+
+	$formconfirm = $form->formconfirm(
+		$confirmUrl,
+		$langs->trans('DeleteFile'),
+		$langs->trans('ConfirmDeleteFile'),
+		'confirm_deletefile',
+		array(),
+		'yes',
+		1
+	);
+	print $formconfirm;
+}
+
 
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
@@ -216,8 +317,29 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
 $ref = dol_sanitizeFileName($object->ref);
-$relativepath = $object->element.'/'.$ref; // ex: rgw_cycle/RGW-3
-$cycleFileDir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$entity])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$entity];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+}
+
+// EN: Same autodetection as document section.
+// FR: Même autodétection que la section documents.
+$relativepath = $ref;
+$cycleFileDir = rtrim($baseOutput, '/').'/'.$relativepath;
+
+if (!empty($object->element)) {
+	$altRelativePath = $object->element.'/'.$ref;
+	$altFileDir = rtrim($baseOutput, '/').'/'.$altRelativePath;
+	if (is_dir($altFileDir) || file_exists($altFileDir.'/'.$ref.'.pdf')) {
+		$relativepath = $altRelativePath;
+		$cycleFileDir = $altFileDir;
+	}
+}
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
@@ -410,17 +532,36 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<a name="builddoc"></a>'; // ancre
 
 	// Generated documents
-	$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+	$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
-	$ref = dol_sanitizeFileName($object->ref);
-	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
+	$baseOutput = '';
+	if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+		$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+	} elseif (!empty($conf->rgwarranty->dir_output)) {
+		$baseOutput = $conf->rgwarranty->dir_output;
+	} else {
+		$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+	}
+
+	$docRef = dol_sanitizeFileName($object->ref);
+
+	$relativepath = $docRef;
+	$filedir = rtrim($baseOutput, '/').'/'.$relativepath;
+
+	if (!empty($object->element)) {
+		$altRelativePath = $object->element.'/'.$docRef;
+		$altFileDir = rtrim($baseOutput, '/').'/'.$altRelativePath;
+		if (is_dir($altFileDir) || file_exists($altFileDir.'/'.$docRef.'.pdf')) {
+			$relativepath = $altRelativePath;
+			$filedir = $altFileDir;
+		}
+	}
+
 	$filename = $relativepath;
-	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-	$moreparams = 'id='.$object->id.'&entity='.$entity;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
-	$genallowed = $usercanread;
-	$delallowed = $usercancreate;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$docEntityId;
+
+	$genallowed = ($permissiontowrite ? 1 : 0);
+	$delallowed = ($permissiontowrite ? 1 : 0);
 	$tooltipAfterComboOfModels = '';
 
 	$model = GETPOST('model', 'alpha');
@@ -447,7 +588,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file_confirm',
+		'remove_file',
 		$tooltipAfterComboOfModels
 	);
 
@@ -481,7 +622,30 @@ if ($action == 'presend') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
-	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element;
+	$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+	$baseOutput = '';
+	if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+		$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+	} elseif (!empty($conf->rgwarranty->dir_output)) {
+		$baseOutput = $conf->rgwarranty->dir_output;
+	} else {
+		$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+	}
+
+	$docRef = dol_sanitizeFileName($object->ref);
+
+	$relativepath = $docRef;
+	$diroutput = rtrim($baseOutput, '/').'/'.$relativepath;
+
+	if (!empty($object->element)) {
+		$altRelativePath = $object->element.'/'.$docRef;
+		$altFileDir = rtrim($baseOutput, '/').'/'.$altRelativePath;
+		if (is_dir($altFileDir) || file_exists($altFileDir.'/'.$docRef.'.pdf')) {
+			$relativepath = $altRelativePath;
+			$diroutput = $altFileDir;
+		}
+	}
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
