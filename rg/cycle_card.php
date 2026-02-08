@@ -472,7 +472,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 			
 			
 			// ICI dans le 2e argument
-			print $formfile->showdocuments('notesinternes:Note', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+			print $formfile->showdocuments('rgwarranty:rgw_cycle', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
         }
 
 	$somethingshown = $formfile->numoffiles;
