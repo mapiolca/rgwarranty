@@ -425,7 +425,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
 	$model = GETPOST('model', 'alpha');
 	if (empty($model)) $model = getDolGlobalString('RGWARRANTY_PDF_MODEL'); // ou le nom de constante que tu utilises
-
+	
 
 	print $formfile->showdocuments(
 		'rgwarranty',
@@ -450,6 +450,29 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'remove_file_confirm',
 		$tooltipAfterComboOfModels
 	);
+
+	// fichier card nomdumodule_card.php
+
+        // Documents
+
+        if ($includedocgeneration) {
+
+			$objref = dol_sanitizeFileName($object->ref);
+			
+			$relativepath = $objref.'/'.$objref.'.pdf';
+			
+			$filedir = $conf->rgwarranty->dir_output.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
+			
+			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
+			
+			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
+			
+			$delallowed = $permissiontoadd; // If you can create/edit, you can remove a file on card
+			
+			
+			// ICI dans le 2e argument
+			print $formfile->showdocuments('notesinternes:Note', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+        }
 
 	$somethingshown = $formfile->numoffiles;
 	print '</div>';
