@@ -454,6 +454,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	// fichier card nomdumodule_card.php
 
         // Documents
+		$includedocgeneration = 1;
 
         if ($includedocgeneration) {
 
