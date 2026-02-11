@@ -422,7 +422,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
         if ($includedocgeneration) {
 			$objref = dol_sanitizeFileName($object->ref);
-			$relativepath = $objref.'/'.$objref.'.pdf';
+			$relativepath = $object->element.'/'.$objref.'/'.$objref.'.pdf';
 			$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
