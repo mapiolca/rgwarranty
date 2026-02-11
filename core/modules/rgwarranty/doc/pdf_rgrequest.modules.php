@@ -621,6 +621,6 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 
 		// EN: Keep same footer rendering as sponge (pdf_pagefoot), but use generic key already used previously here.
 		// FR: Garder le rendu footer de sponge (pdf_pagefoot), en conservant la clé déjà utilisée ici.
-		return pdf_pagefoot($pdf, $outputlangs, 'PROPOSAL_FREE_TEXT', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext, $this->page_largeur, $this->watermark);
+		return pdf_pagefoot($pdf, $outputlangs, 'PROPOSAL_FREE_TEXT', $this->emetteur, $this->marge_basse+10, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext, $this->page_largeur, $this->watermark);
 	}
 }
