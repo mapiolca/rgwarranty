@@ -422,12 +422,10 @@ if ($action != 'prerelance' && $action != 'presend') {
 
         if ($includedocgeneration) {
 			$objref = dol_sanitizeFileName($object->ref);
-			$relativepath = $object->element.'/'.$objref.'/'.$objref.'.pdf';
 			$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
 			$delallowed = $permissiontowrite; // If you can create/edit, you can remove a file on card
-		var_dump($filedir);
 			// ICI dans le 2e argument
 			print $formfile->showdocuments('rgwarranty:Rgwarranty', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
         }
