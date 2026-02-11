@@ -428,7 +428,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 			$delallowed = $permissiontowrite; // If you can create/edit, you can remove a file on card
 			var_dump($delallowed);
 			// ICI dans le 2e argument
-			print $formfile->showdocuments('rgwarranty:Rgwarranty', $object->element.'/'.$object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+			print $formfile->showdocuments('rgwarranty:Rgwarranty', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
         }
 
 	$somethingshown = $formfile->numoffiles;
