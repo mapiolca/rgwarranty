@@ -422,7 +422,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
         if ($includedocgeneration) {
 			$objref = dol_sanitizeFileName($object->ref);
-			$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
+			$filedir = $conf->rgwarranty->multidir_output[$conf->entity].'/'.$object->element.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
 			$delallowed = $permissiontowrite; // If you can create/edit, you can remove a file on card
@@ -437,7 +437,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
 	// EN: Limit timeline to last events like core invoice card
 	// FR: Limiter l'historique aux derniers événements comme la fiche facture
-	$MAXEVENT = 10;
+	$MAXEVENT = 5;
 
 	// EN: Provide shortcuts to full conversation and list
 	// FR: Fournir des raccourcis vers la conversation et la liste complètes
@@ -461,7 +461,7 @@ if ($action == 'presend') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
-	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element;
+	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref;
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
