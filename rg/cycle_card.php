@@ -424,13 +424,32 @@ if ($action != 'prerelance' && $action != 'presend') {
 		$objref = dol_sanitizeFileName($object->ref);
 		$relativepath = $objref.'/'.$objref.'.pdf';
 		$filedir = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
-		//$objref = dol_sanitizeFileName($object->ref);
-		//$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$object->element.'/'.$objref; // <-- ICI j'ai supprimé  $object→element
 		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 		$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
 		$delallowed = $permissiontowrite; // If you can create/edit, you can remove a file on card
 		// ICI dans le 2e argument
-		print $formfile->showdocuments('rgwarranty:Rgwarranty', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, '', $object);
+		print $formfile->showdocuments('rgwarranty:Rgwarranty',
+					$relativePath,
+					$filedir,
+					$urlsource,
+					$genallowed,
+					$delallowed,
+					$object->model_pdf,
+					1,
+					0,
+					0,
+					28,
+					0,
+					'',
+					'',
+					'',
+					$langs->defaultlang,
+					'',
+					$object,
+					0,
+					'remove_file',
+					''
+				);
 	}
 
 	$somethingshown = $formfile->numoffiles;
@@ -463,7 +482,7 @@ if ($action == 'presend') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
-	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$objref;
+	$diroutput = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
