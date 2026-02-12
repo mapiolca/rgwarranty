@@ -306,7 +306,6 @@ print '<div class="fichehalfright">';
 print '<table class="border centpercent tableforfield">';
 print '<tr><td class="titlefield">'.$langs->trans('RGWTotalRG').'</td><td>'.price($totals['rg_total_ttc']).'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWRemainingRG').'</td><td>'.price($totals['rg_remaining_ttc']).'</td></tr>';
-print '<tr><td class="titlefield">'.$langs->trans('Status').'</td><td>'.rgwarranty_get_cycle_status_badge($langs, $object->status).'</td></tr>';
 print '</table>';
 print '</div>';
 print '<div class="clearboth"></div>';
