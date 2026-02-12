@@ -484,7 +484,9 @@ if ($action == 'presend') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
+	$objref = dol_sanitizeFileName($object->ref);
 	$diroutput = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
+	var_dump($objref);
 	var_dump($diroutput);
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
