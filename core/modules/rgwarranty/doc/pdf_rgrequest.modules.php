@@ -209,8 +209,13 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$dir = $baseoutputdir.'/'.$object->element.'/'.$ref;
 		$file = $dir.'/'.$ref.'.pdf';
 
-		if (!dol_mkdir($dir)) {
+		if (!is_dir($dir) && !dol_mkdir($dir)) {
 			$this->error = $outputlangs->trans('ErrorCantCreateDir', $dir);
+			return 0;
+		}
+
+		if (is_file($file) && !is_writable($file)) {
+			$this->error = $outputlangs->trans('ErrorFailedToWriteFile', $file);
 			return 0;
 		}
 
