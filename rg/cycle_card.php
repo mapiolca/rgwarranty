@@ -69,13 +69,13 @@ $action = GETPOST('action', 'aZ09');
 $mailcontext = GETPOST('mailcontext', 'alpha');
 
 $permissiontoread = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'read'));
-$permissiontowrite = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
+$permissiontoadd = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'write'));
 $permissiontopay = ($user->admin || $user->hasRight('rgwarranty', 'cycle', 'pay'));
 
 // EN: Map permissions for document generation/deletion
 // FR: Mapper les permissions pour la génération/suppression de documents
 $usercanread = $permissiontoread;
-$usercancreate = $permissiontowrite;
+$usercancreate = $permissiontoadd;
 
 if (!$permissiontoread) {
 	accessforbidden();
@@ -84,7 +84,7 @@ if (!$permissiontoread) {
 // EN: Prevent actions without rights
 // FR: Bloquer les actions sans droits
 $actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend');
-if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
+if (in_array($action, $actionswithwrite, true) && !$permissiontoadd) {
 	accessforbidden();
 }
 
@@ -123,7 +123,7 @@ if ($reshook < 0) {
 
 // EN: Handle actions
 // FR: Gérer les actions
-if ($reshook == 0 && $action == 'reception_save' && $permissiontowrite) {
+if ($reshook == 0 && $action == 'reception_save' && $permissiontoadd) {
 	$date_reception = dol_mktime(0, 0, 0, GETPOSTINT('receptionmonth'), GETPOSTINT('receptionday'), GETPOSTINT('receptionyear'));
 	$date_limit = dol_mktime(0, 0, 0, GETPOSTINT('limitmonth'), GETPOSTINT('limitday'), GETPOSTINT('limityear'));
 	if (empty($date_reception)) {
@@ -145,7 +145,7 @@ if ($reshook == 0 && $action == 'reception_save' && $permissiontowrite) {
 	$action = '';
 }
 
-if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permissiontowrite) {
+if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permissiontoadd) {
 	if (empty($object->date_reception)) {
 		setEventMessages($langs->trans('RGWReceptionRequired'), null, 'errors');
 		$action = '';
@@ -204,7 +204,7 @@ if ($action === 'remove_file') {
 
 // EN: Generate document from selected model
 // FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
+if ($reshook == 0 && $action == 'builddoc' && $permissiontoadd) {
 	$model = GETPOST('model', 'alpha');
 	if (empty($model)) {
 		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
@@ -325,7 +325,7 @@ print '</table>';
 print '</div>';
 print '<div class="clearboth"></div>';
 
-if ($action == 'reception' && $permissiontowrite) {
+if ($action == 'reception' && $permissiontoadd) {
 	print '<a name="reception"></a>';
 	print load_fiche_titre($langs->trans('RGWSetReception'));
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
@@ -427,10 +427,10 @@ if ($action != 'presend') {
 		setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 	}
 	if (empty($hookmanager->resPrint)) {
-		if ($permissiontowrite && empty($object->date_reception)) {
+		if ($permissiontoadd && empty($object->date_reception)) {
 			print dolGetButtonAction('', $langs->trans('RGWSetReception'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=reception#reception', '', 1);
 		}
-		if ($permissiontowrite && !empty($object->date_reception)) {
+		if ($permissiontoadd && !empty($object->date_reception)) {
 			print dolGetButtonAction('', $langs->trans('RGWRequest'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=request', '', 1);
 			print dolGetButtonAction('', $langs->trans('RGWReminder'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=reminder&mailcontext=reminder', '', 1);
 		}
@@ -464,7 +464,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		$filedir = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
 		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 		$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
-		$delallowed = $permissiontowrite; // If you can create/edit, you can remove a file on card
+		$delallowed = $permissiontoadd; // If you can create/edit, you can remove a file on card
 		// ICI dans le 2e argument
 		print $formfile->showdocuments('rgwarranty:Rgwarranty', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, '', $object);
 	}
