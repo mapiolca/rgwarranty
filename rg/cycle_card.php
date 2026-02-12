@@ -476,6 +476,10 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '</div></div>';
 }
 
+//Select mail models is same action as presend
+if (GETPOST('modelselected')) {
+	$action = 'presend';
+}
 // EN: Presend mail form
 // FR: Formulaire d'envoi email
 if ($action == 'presend') {
@@ -486,8 +490,6 @@ if ($action == 'presend') {
 	$defaulttopic = 'RGWRequestLetterTitle';
 	$objref = dol_sanitizeFileName($object->ref);
 	$diroutput = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
-	var_dump($objref);
-	var_dump($diroutput);
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
