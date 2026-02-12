@@ -203,22 +203,7 @@ if ($action === 'remove_file') {
 	}
 }
 
-// EN: Generate document from selected model
-// FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontoadd) {
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) {
-		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
-	}
-	$object->model_pdf = $model;
-	$result = $object->generateDocument($model, $langs, 0, 0, 0);
-	if ($result <= 0) {
-		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
-			setEventMessages($object->error, $object->errors, 'errors');
-		}
-	}
-	$action = '';
-}
+
 
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
