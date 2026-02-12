@@ -61,6 +61,7 @@ require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once __DIR__.'/../class/rg_cycle.class.php';
 require_once __DIR__.'/../lib/rgwarranty.lib.php';
 
+
 $langs->loadLangs(array('rgwarranty@rgwarranty', 'companies', 'projects', 'bills', 'other'));
 
 $id = GETPOSTINT('id');
@@ -161,6 +162,43 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 			$mailcontext = 'reminder';
 		}
 		$action = 'presend';
+	}
+}
+
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
+// EN: Manage attachment upload and deletion with Dolibarr helper to keep buttons functional.
+// FR: Gère l'envoi et la suppression des pièces jointes avec l'aide Dolibarr pour garder les boutons fonctionnels.
+if ($action === 'remove_file') {
+	if (empty($permissiontoadd)) {
+		// EN: Block removal requests when the user lacks the document permission.
+		// FR: Bloque les demandes de suppression lorsque l'utilisateur n'a pas la permission sur le document.
+		setEventMessages($langs->trans('NotEnoughPermissions'), null, 'errors');
+		$action = '';
+	} else {
+		// EN: Retrieve the requested filename and default to the generated PDF when missing.
+		// FR: Récupère le nom de fichier demandé et prend par défaut le PDF généré lorsqu'il est absent.
+		$requestedFile = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		if ($requestedFile === '' && !empty($object->ref)) {
+			$requestedFile = dol_sanitizeFileName($object->ref).'.pdf';
+		}
+		// EN: Reduce the requested file to its basename to match Dolibarr's document deletion URL.
+		// FR: Réduit le fichier demandé à son basename pour respecter l'URL de suppression Dolibarr.
+		$requestedFile = dol_sanitizeFileName(basename((string) $requestedFile));
+		if ($requestedFile !== '') {
+			// EN: Store the sanitized filename for the confirmation dialog and Dolibarr workflow.
+			// FR: Stocke le nom de fichier assaini pour la boîte de confirmation et le flux Dolibarr.
+			$_GET['file'] = $requestedFile;
+			$_REQUEST['file'] = $requestedFile;
+			$_GET['urlfile'] = $requestedFile;
+			$_REQUEST['urlfile'] = $requestedFile;
+			$action = 'deletefile';
+		} else {
+			// EN: Warn the user when no filename is provided in the deletion URL.
+			// FR: Avertit l'utilisateur lorsqu'aucun nom de fichier n'est fourni dans l'URL de suppression.
+			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
+			$action = '';
+		}
 	}
 }
 
