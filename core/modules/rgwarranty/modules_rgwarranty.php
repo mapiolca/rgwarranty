@@ -23,25 +23,15 @@
 
 // EN: Load core PDF base module
 // FR: Charger le module PDF de base du core
-dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/files.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
 
-// EN: Provide fallback if base class is missing to avoid fatal
-// FR: Fournir un fallback si la classe de base manque pour éviter un fatal
-if (!class_exists('ModelePDF')) {
-	dol_syslog('ModelePDF class not found for rgwarranty documents driver', LOG_ERR);
-	class ModelePDF
-	{
-		public $error = '';
-	}
-}
-
-/**
- * PDF model handler for RG Warranty.
- */
-if (!class_exists('ModelePDFRgwarranty')) {
-	class ModelePDFRgwarranty extends ModelePDF
+if (!class_exists('ModelePDFRgwarranty', false)) {
+	/**
+	 * PDF model handler for RG Warranty.
+	 */
+	class ModelePDFRgwarranty extends CommonDocGenerator
 	{
 		/**
 		 * @var DoliDB Database handler
@@ -67,6 +57,12 @@ if (!class_exists('ModelePDFRgwarranty')) {
 		 * @var string Subdir for model lookup
 		 */
 		public $scandir;
+
+		public $format;
+		public $marge_left; 
+		public $marge_right; 
+		public $marge_top; 
+		public $marge_bottom;
 
 		/**
 		 * Return list of available document models.
@@ -95,10 +91,11 @@ if (!class_exists('ModelePDFRgwarranty')) {
 			// FR: Initialiser les métadonnées du modèle
 			$this->db = $db;
 			$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
-			$this->name = 'rgwarranty';
+			$this->name = 'rgw_cycle';
 			$this->description = $langs->trans('RGWDocuments');
 			$this->type = 'pdf';
 			$this->scandir = 'rgwarranty';
 		}
+		
 	}
 }

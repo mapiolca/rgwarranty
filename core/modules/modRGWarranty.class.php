@@ -121,6 +121,7 @@ if (!class_exists('modRGWarranty')) {
 
 		$this->menu = array();
 		$r = 0;
+		/*
 		$this->menu[$r++] = array(
 			'fk_menu' => '',
 			'type' => 'top',
@@ -136,13 +137,14 @@ if (!class_exists('modRGWarranty')) {
 			'target' => '',
 			'user' => 2,
 		);
+		*/
 		$this->menu[$r++] = array(
-			'fk_menu' => 'fk_mainmenu=btp',
+			'fk_menu' => 'fk_mainmenu=billing,fk_leftmenu=customers_bills',
 			'type' => 'left',
 			'titre' => 'RGWMenuRetention',
-			'prefix' => img_picto('', $this->picto, 'class="paddingright pictofixedwidth valignmiddle"'),
-			'mainmenu' => 'btp',
-			'leftmenu' => 'rgwarranty_cycle',
+			//'prefix' => img_picto('', $this->picto, 'class="paddingright pictofixedwidth valignmiddle"'),
+			'mainmenu' => 'billing',
+			'leftmenu' => 'rgwarranty',
 			'url' => '/rgwarranty/rg/index.php',
 			'langs' => 'rgwarranty@rgwarranty',
 			'position' => 1000 + $r,

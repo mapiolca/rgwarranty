@@ -89,11 +89,14 @@ if ($page < 0) {
 }
 $offset = $limit * $page;
 
-if (GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) {
+$button_search = (GETPOSTISSET('button_search') || GETPOSTISSET('button_search_x') || GETPOSTISSET('button_search_y'));
+$button_removefilter = (GETPOSTISSET('button_removefilter') || GETPOSTISSET('button_removefilter_x') || GETPOSTISSET('button_removefilter_y'));
+
+if ($button_search || $button_removefilter) {
 	$page = 0;
 }
 
-if (GETPOST('button_removefilter', 'alpha')) {
+if ($button_removefilter) {
 	$search_ref = '';
 	$search_socid = 0;
 	$search_project = 0;
@@ -108,7 +111,8 @@ $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formproject = new FormProjets($db);
 
-llxHeader('', $langs->trans('RGWCockpit'));
+$title = $langs->trans('RGWCockpit');
+llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'bodyforlist'.($contextpage == 'poslist' ? ' '.$contextpage : ''));
 
 $sortfields = array(
 	'ref' => 'c.ref',
@@ -138,7 +142,7 @@ if ($search_socid > 0) {
 if ($search_project > 0) {
 	$param .= '&search_project='.((int) $search_project);
 }
-if ($search_status !== '') {
+if ($search_status !== '' && $search_status !== '-1') {
 	$param .= '&search_status='.urlencode($search_status);
 }
 if ($search_date_reception_start) {
@@ -177,7 +181,7 @@ if ($search_socid > 0) {
 if ($search_project > 0) {
 	$sqlwhere .= " AND c.fk_projet = ".((int) $search_project);
 }
-if ($search_status !== '') {
+if ($search_status !== '' && $search_status !== '-1') {
 	$sqlwhere .= " AND c.status = ".((int) $search_status);
 }
 if (!empty($search_date_reception_start)) {
@@ -209,15 +213,19 @@ $sql .= " (SUM(cf.rg_amount_ttc) - SUM(cf.rg_paid_ttc)) as rg_remaining_ttc";
 $sql .= $sqlfrom.$sqlwhere;
 $sql .= " GROUP BY c.rowid, c.ref, c.situation_cycle_ref, c.fk_soc, s.nom, c.fk_projet, p.ref, p.title, c.date_reception, c.date_limit, c.status";
 $sql .= " ORDER BY ".$sortfields[$sortfield]." ".$sortorder.", c.rowid DESC";
-$sql .= $db->plimit($limit, $offset);
+$sql .= $db->plimit($limit + 1, $offset);
 
 $resql = $db->query($sql);
-$num = 0;
-if ($resql) {
-	$num = $db->num_rows($resql);
+if (!$resql) {
+	dol_print_error($db);
+	exit;
 }
+$num = $db->num_rows($resql);
 
-print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'title_generic');
+//print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, 'invoicing', $num, $nbtotalofrecords, 'title_generic');
+print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'invoicing', 0, $newcardbutton, '', $limit, 0, 0, 1);
+//print load_fiche_titre($title, '', 'invoicing');
+
 
 print '<form method="GET" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="sortfield" value="'.dol_escape_htmltag($sortfield).'">';
@@ -225,6 +233,7 @@ print '<input type="hidden" name="sortorder" value="'.dol_escape_htmltag($sortor
 print '<div class="div-table-responsive">';
 print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
+print '<td class="liste_titre"></td>';
 print_liste_field_titre($langs->trans('RGWCycleRef'), $_SERVER['PHP_SELF'], 'ref', $param, '', '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER['PHP_SELF'], 'socname', $param, '', '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Project'), $_SERVER['PHP_SELF'], 'project_ref', $param, '', '', $sortfield, $sortorder);
@@ -237,23 +246,29 @@ print_liste_field_titre($langs->trans('Actions'), $_SERVER['PHP_SELF'], '', $par
 print '</tr>';
 
 print '<tr class="liste_titre_filter">';
+print '<td class="liste_titre_filter center">'.$form->showFilterAndCheckAddButtons(0, 0, 1).'</td>';
 print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth100" name="search_ref" value="'.dol_escape_htmltag($search_ref).'"></td>';
+//print '<td class="liste_titre_filter"><input type="text" class="flat maxwidth150" name="search_socid" value="'.dol_escape_htmltag($search_socid).'"></td>';
 print '<td class="liste_titre_filter">'.$formcompany->select_company($search_socid, 'search_socid', '', 1, 0, 0, array(), 0, 'maxwidth200').'</td>';
-print '<td class="liste_titre_filter">'.$formproject->select_projects($search_project, 'search_project', 0, 0, 0, 1, 0, 0, 0, 0, 'maxwidth200').'</td>';
+//print '<td class="liste_titre_filter">'.$formproject->select_projects($search_project, 'search_project', 0, 0, 0, 1, 0, 0, 0, 0, 'maxwidth200').'</td>';
+$socidforproject = ($search_socid > 0 ? (int) $search_socid : -1);
+//print '<td class="liste_titre_filter">'.$formproject->select_projects($socidforproject, $search_project, 'search_project', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth200').'</td>';
 print '<td class="liste_titre_filter">';
-print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0, 1).'</div>';
-print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_reception_end, 'search_date_reception_end', 0, 0, 1, '', 1, 0, 1).'</div>';
+print '<div>'.$formproject->select_projects($socidforproject, $search_project, 'search_project', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth200').'</div></td>';
+print '<td class="liste_titre_filter">';
+print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_reception_start, 'search_date_reception_start', 0, 0, 1, '', 1, 0).'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_reception_end,   'search_date_reception_end', 0, 0, 1, '', 1, 0).'</div>';
 print '</td>';
 print '<td class="liste_titre_filter">';
-print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_limit_start, 'search_date_limit_start', 0, 0, 1, '', 1, 0, 1).'</div>';
-print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_limit_end, 'search_date_limit_end', 0, 0, 1, '', 1, 0, 1).'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('From').' '.$form->selectDate($search_date_limit_start,'search_date_limit_start', 0, 0, 1, '', 1, 0).'</div>';
+print '<div class="nowrapfordate">'.$langs->trans('to').' '.$form->selectDate($search_date_limit_end,'search_date_limit_end', 0, 0, 1, '', 1, 0).'</div>';
 print '</td>';
 print '<td class="liste_titre_filter"></td>';
 print '<td class="liste_titre_filter"></td>';
 print '<td class="liste_titre_filter">';
 print $form->selectarray('search_status', array('' => '', 0 => $langs->trans('RGWStatusDraft'), 1 => $langs->trans('RGWStatusInProgress'), 2 => $langs->trans('RGWStatusToRequest'), 3 => $langs->trans('RGWStatusRequested'), 4 => $langs->trans('RGWStatusPartial'), 5 => $langs->trans('RGWStatusRefunded')), $search_status, 1, 0, 0, '', 0, 0, 0, '', 'flat');
 print '</td>';
-print '<td class="liste_titre_filter center">'.$form->showFilterAndCheckAddButtons(0, 0, 1).'</td>';
+print '<td class="liste_titre_filter"></td>';
 print '</tr>';
 
 if ($resql) {
@@ -263,6 +278,7 @@ if ($resql) {
 			$remaining = price2num($obj->rg_remaining_ttc, 'MT');
 
 			print '<tr class="oddeven">';
+			print '<td></td>';
 			print '<td><a href="'.dol_buildpath('/rgwarranty/rg/cycle_card.php', 1).'?id='.$obj->rowid.'">'.dol_escape_htmltag($obj->ref).'</a></td>';
 			print '<td>';
 			if (!empty($obj->fk_soc)) {
@@ -295,7 +311,7 @@ if ($resql) {
 		}
 	} else {
 		print '<tr class="oddeven">';
-		print '<td colspan="9"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td>';
+		print '<td colspan="10"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td>';
 		print '</tr>';
 	}
 }

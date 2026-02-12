@@ -7,6 +7,7 @@ CREATE TABLE llx_rgw_cycle (
 	fk_projet integer NULL,
 	fk_soc integer NULL,
 	date_reception date NULL,
+	model_pdf varchar(255) NOT NULL,
 	date_limit date NULL,
 	status smallint NOT NULL DEFAULT 0,
 	note_private text NULL,

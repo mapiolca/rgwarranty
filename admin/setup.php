@@ -73,7 +73,7 @@ $action = GETPOST('action', 'aZ09');
 $value = GETPOST('value', 'alpha');
 $label = GETPOST('label', 'alpha');
 $scandir = GETPOST('scan_dir', 'alpha');
-$type = 'rgw_cycle';
+$type = 'rgwarranty';
 
 $form = new Form($db);
 

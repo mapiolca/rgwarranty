@@ -33,11 +33,12 @@ class RGCycle extends CommonObject
 	 * @var string ID of module.
 	 */
 	public $module = 'rgwarranty';
+	public $picto = 'invoicing';
 
 	/**
 	 * @var string ID to identify managed object.
 	 */
-	public $element = 'rgw_cycle';
+	public $element = 'rgwarranty';
 
 	/**
 	 * @var string Name of table without prefix.
