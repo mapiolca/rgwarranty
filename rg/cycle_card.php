@@ -447,7 +447,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	if ($includedocgeneration) {
 		$objref = dol_sanitizeFileName($object->ref);
 		$relativepath = $objref.'/';
-		$filedir = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
+		$filedir = getMultidirOutput($object).'/'.$objref;
 		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 		$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
 		$delallowed = $permissiontoadd; // If you can create/edit, you can remove a file on card
