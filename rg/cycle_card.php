@@ -112,7 +112,6 @@ $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 //dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
 
 $error = 0;
-$upload_dir = $baseTimesheetDir.'/timesheetweek/'.dol_sanitizeFileName($object->ref);
 
 // EN: Allow hooks to process actions
 // FR: Autoriser les hooks à traiter les actions
@@ -166,6 +165,7 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
+$upload_dir = $conf->rgwarranty->dir_output;
 include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 
 // EN: Manage attachment upload and deletion with Dolibarr helper to keep buttons functional.
