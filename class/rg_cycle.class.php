@@ -414,11 +414,13 @@ class RGCycle extends CommonObject
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
 			$this->labelStatus[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('RGWStatusInProgress');
 			$this->labelStatus[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('RGWStatusToRequest');
+			$this->labelStatus[self::STATUS_REQUESTED] = $langs->transnoentitiesnoconv('RGWStatusRequested');
 			$this->labelStatus[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('RGWStatusPartial');
 			$this->labelStatus[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('RGWStatusRefounded');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
 			$this->labelStatusShort[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('RGWStatusInProgress');
 			$this->labelStatusShort[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('RGWStatusToRequest');
+			$this->labelStatusShort[self::STATUS_REQUESTED] = $langs->transnoentitiesnoconv('RGWStatusRequested');
 			$this->labelStatusShort[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('RGWStatusPartial');
 			$this->labelStatusShort[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('RGWStatusRefounded');
 
