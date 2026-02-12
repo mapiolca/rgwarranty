@@ -485,22 +485,12 @@ if ($action == 'presend') {
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
 	$diroutput = getMultidirOutput($object).'/'.$object->element.'/'.$objref;
+	var_dump($diroutput);
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
 
-//Select mail models is same action as presend
-	if (GETPOST('modelselected')) {
-		$action = 'presend';
-	}
 
-	// Presend form
-	$modelmail = 'vierge';
-	$defaulttopic = 'InformationMessage';
-	$diroutput = $conf->vierge->dir_output;
-	$trackid = 'vierge'.$object->id;
-
-	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 
 llxFooter();
 $db->close();
