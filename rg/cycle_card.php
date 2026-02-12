@@ -112,6 +112,7 @@ $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 //dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
 
 $error = 0;
+$upload_dir = $baseTimesheetDir.'/timesheetweek/'.dol_sanitizeFileName($object->ref);
 
 // EN: Allow hooks to process actions
 // FR: Autoriser les hooks à traiter les actions
