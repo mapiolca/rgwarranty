@@ -295,6 +295,25 @@ class RGCycle extends CommonObject
 	}
 
 	/**
+	 * Return the status label/badge.
+	 *
+	 * @param	int	$mode	Display mode (0=label, >=5=badge)
+	 * @return	string			Status rendering
+	 */
+	public function getLibStatut($mode = 0)
+	{
+		global $langs;
+
+		dol_include_once('/rgwarranty/lib/rgwarranty.lib.php');
+
+		if ((int) $mode >= 5) {
+			return rgwarranty_get_cycle_status_badge($langs, (int) $this->status);
+		}
+
+		return rgwarranty_get_cycle_status_label($langs, (int) $this->status);
+	}
+
+	/**
 	 * Update status based on totals.
 	 *
 	 * @param	float	$remaining	Remaining amount
