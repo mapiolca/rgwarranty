@@ -364,4 +364,72 @@ class RGCycle extends CommonObject
 
 		return 1;
 	}
+
+	/**
+	 *  Return the label of the status
+	 *
+	 *  @param	int<0,6>	$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+	 *  @return	string 			       Label of status
+	 */
+	public function getLabelStatus($mode = 0)
+	{
+		return $this->LibStatut($this->status, $mode);
+	}
+
+	/**
+	 *  Return the label of the status
+	 *
+	 *  @param	int<0,6>	$mode	0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+	 *  @return	string				Label of status
+	 */
+	public function getLibStatut($mode = 0)
+	{
+		return $this->LibStatut($this->status, $mode);
+	}
+
+	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
+	/**
+	 *  Return the label of a given status
+	 *
+	 *  @param	int			$status		Id status
+	 *  @param	int<0,6>	$mode		0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+	 *  @return	string					Label of status
+	 */
+	public function LibStatut($status, $mode = 0)
+	{
+		// phpcs:enable
+		if (is_null($status)) {
+			return '';
+		}
+
+		$paramsBadge = array('badgeParams' => array('attr' => array(
+			'data-status-element' => $this->element,
+			'data-status' => (int) $status
+		)));
+
+
+		if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
+			global $langs;
+			//$langs->load("vierge@vierge");
+			$this->labelStatus[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
+			$this->labelStatus[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('InProgress');
+			$this->labelStatus[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('ToRequest');
+			$this->labelStatus[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('Partial');
+			$this->labelStatus[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('Refounded');
+			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
+			$this->labelStatusShort[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('InProgress');
+			$this->labelStatusShort[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('ToRequest');
+			$this->labelStatusShort[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('Partial');
+			$this->labelStatusShort[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('Refounded');
+
+		}
+
+		$statusType = 'status'.$status;
+		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
+		if ($status == self::STATUS_CANCELED) {
+			$statusType = 'status6';
+		}
+
+		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode, '', $paramsBadge);
+	}
 }
