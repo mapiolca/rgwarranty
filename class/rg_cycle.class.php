@@ -412,15 +412,15 @@ class RGCycle extends CommonObject
 			global $langs;
 			//$langs->load("vierge@vierge");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
-			$this->labelStatus[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('InProgress');
-			$this->labelStatus[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('ToRequest');
-			$this->labelStatus[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('Partial');
-			$this->labelStatus[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('Refounded');
+			$this->labelStatus[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('RGWStatusInProgress');
+			$this->labelStatus[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('RGWStatusToRequest');
+			$this->labelStatus[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('RGWStatusPartial');
+			$this->labelStatus[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('RGWStatusRefounded');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
-			$this->labelStatusShort[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('InProgress');
-			$this->labelStatusShort[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('ToRequest');
-			$this->labelStatusShort[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('Partial');
-			$this->labelStatusShort[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('Refounded');
+			$this->labelStatusShort[self::STATUS_IN_PROGRESS] = $langs->transnoentitiesnoconv('RGWStatusInProgress');
+			$this->labelStatusShort[self::STATUS_TO_REQUEST] = $langs->transnoentitiesnoconv('RGWStatusToRequest');
+			$this->labelStatusShort[self::STATUS_PARTIAL] = $langs->transnoentitiesnoconv('RGWStatusPartial');
+			$this->labelStatusShort[self::STATUS_REFUNDED] = $langs->transnoentitiesnoconv('RGWStatusRefounded');
 
 		}
 
