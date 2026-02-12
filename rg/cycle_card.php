@@ -266,7 +266,7 @@ $morehtmlref .= $langs->trans('Project').' : '.$projectLabel;
 $morehtmlref .= '</div>';
 
 $linkback = '<a href="'.dol_buildpath('/rgwarranty/rg/index.php', 1).'">'.$langs->trans('BackToList').'</a>';
-$morehtmlstatus = '';
+$morehtmlstatus = $object->getLibStatut(5);
 
 dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref, '', 0, '', $morehtmlstatus);
 print '<div class="underbanner clearboth"></div>';
@@ -306,7 +306,7 @@ print '<div class="fichehalfright">';
 print '<table class="border centpercent tableforfield">';
 print '<tr><td class="titlefield">'.$langs->trans('RGWTotalRG').'</td><td>'.price($totals['rg_total_ttc']).'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWRemainingRG').'</td><td>'.price($totals['rg_remaining_ttc']).'</td></tr>';
-print '<tr><td class="titlefield">'.$langs->trans('Status').'</td><td>'.rgwarranty_get_cycle_status_badge($langs, $object->status).'</td></tr>';
+print '<tr><td class="titlefield">'.$langs->trans('Status').'</td><td>'.$object->getLibStatut(5).'</td></tr>';
 print '</table>';
 print '</div>';
 print '<div class="clearboth"></div>';
