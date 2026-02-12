@@ -490,6 +490,7 @@ if ($action == 'presend') {
 	$defaulttopic = 'RGWRequestLetterTitle';
 	$objref = dol_sanitizeFileName($object->ref);
 	$diroutput = getMultidirOutput($object).'/'.$object->element;
+	var_dump($diroutput);
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
