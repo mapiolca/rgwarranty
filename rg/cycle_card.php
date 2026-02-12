@@ -488,7 +488,7 @@ if ($action == 'presend') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
 	$defaulttopic = 'RGWRequestLetterTitle';
-	$objref = dol_sanitizeFileName($object->ref);
+	$ref = dol_sanitizeFileName($object->ref);
 	$diroutput = getMultidirOutput($object);
 	var_dump($diroutput);
 	$trackid = 'rgwarranty'.$object->id;
