@@ -487,10 +487,18 @@ if ($action == 'presend') {
 	if ($mailcontext == 'reminder') {
 		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
 	}
+	if (GETPOST('modelselected', 'alpha')) {
+		$modelmail = GETPOST('modelselected', 'alpha');
+	}
 	$defaulttopic = 'RGWRequestLetterTitle';
 	$ref = dol_sanitizeFileName($object->ref);
-	$diroutput = getMultidirOutput($object);
-	var_dump($diroutput);
+	$modulepart = $object->element;
+	$diroutput = getMultidirOutput($object).'/'.$object->element.'/'.$ref;
+	$file = '';
+	$generatedfiles = dol_dir_list($diroutput, 'files', 0, '.*\\.pdf$', '\\.meta$', 'date', SORT_DESC);
+	if (!empty($generatedfiles)) {
+		$file = $generatedfiles[0]['fullname'];
+	}
 	$trackid = 'rgwarranty'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }
